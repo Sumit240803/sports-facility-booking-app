@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../app_scope.dart';
+import '../core/push_service.dart';
 import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
+import '../widgets/skeleton.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -33,6 +35,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await runAction(context, () => context.api.markNotificationRead(n.id));
       if (mounted) setState(_load);
     }
+    openNotificationTarget(n.data);
   }
 
   @override
@@ -50,12 +53,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         },
         child: AsyncView<(List<AppNotification>, int)>(
           future: _data,
+          loading: const SkeletonList(),
           onRetry: () => setState(_load),
           isEmpty: (d) => d.$1.isEmpty,
-          empty: ListView(children: const [
-            SizedBox(height: 80),
-            MessageView(icon: Icons.notifications_none, title: 'No notifications yet'),
-          ]),
+          empty: ListView(
+            children: const [
+              SizedBox(height: 80),
+              MessageView(icon: Icons.notifications_none, title: 'No notifications yet'),
+            ],
+          ),
           builder: (context, d) => ListView.separated(
             itemCount: d.$1.length,
             separatorBuilder: (_, _) => const Divider(height: 1),

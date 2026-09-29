@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -33,10 +34,12 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
   void _load() {
     final api = context.api;
     _venue = api.venue(widget.idOrSlug);
-    _venue.then((v) async {
-      final favs = await api.favouriteIds();
-      if (mounted) setState(() => _favourite = favs.contains(v.id));
-    }).catchError((_) {});
+    _venue
+        .then((v) async {
+          final favs = await api.favouriteIds();
+          if (mounted) setState(() => _favourite = favs.contains(v.id));
+        })
+        .catchError((_) {});
   }
 
   Future<void> _toggleFavourite(PublicVenue v) async {
@@ -69,13 +72,13 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                   icon: Icon(_favourite ? Icons.favorite : Icons.favorite_border),
                 ),
               ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: VenueImage(url: v.photos.isEmpty ? null : v.photos.first.url),
-              ),
+              flexibleSpace: FlexibleSpaceBar(background: _PhotoCarousel(photos: v.photos)),
             ),
             SliverToBoxAdapter(child: _Info(venue: v)),
             SliverToBoxAdapter(child: _SlotPicker(venue: v)),
-            SliverToBoxAdapter(child: VenueReviewsSection(venueId: v.id, venueName: v.name)),
+            SliverToBoxAdapter(
+              child: VenueReviewsSection(venueId: v.id, venueName: v.name),
+            ),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
@@ -117,8 +120,7 @@ class _Info extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final a in venue.amenities)
-                  Chip(label: Text(titleCase(a)), visualDensity: VisualDensity.compact),
+                for (final a in venue.amenities) Chip(label: Text(titleCase(a)), visualDensity: VisualDensity.compact),
               ],
             ),
           ],
@@ -170,11 +172,7 @@ class _SlotPickerState extends State<_SlotPicker> {
       action: 'Set reminder',
     );
     if (!ok || !mounted) return;
-    await runAction(
-      context,
-      () => context.api.addReminder(court.id, a.date, slot.start),
-      success: 'Reminder set',
-    );
+    await runAction(context, () => context.api.addReminder(court.id, a.date, slot.start), success: 'Reminder set');
   }
 
   @override
@@ -211,7 +209,10 @@ class _SlotPickerState extends State<_SlotPicker> {
           future: _availability,
           builder: (context, snap) {
             if (snap.connectionState != ConnectionState.done) {
-              return const Padding(padding: EdgeInsets.all(32), child: Center(child: CircularProgressIndicator()));
+              return const Padding(
+                padding: EdgeInsets.all(32),
+                child: Center(child: CircularProgressIndicator()),
+              );
             }
             if (snap.hasError) {
               return MessageView(icon: Icons.event_busy, title: 'Couldn\'t load slots', message: '${snap.error}');
@@ -264,8 +265,8 @@ class _SlotPickerState extends State<_SlotPicker> {
                                 onTap: s.isAvailable
                                     ? () => _openBooking(a, court, s)
                                     : s.status == 'not_yet_open'
-                                        ? () => _remind(a, court, s)
-                                        : null,
+                                    ? () => _remind(a, court, s)
+                                    : null,
                               ),
                           ],
                         ),
@@ -301,7 +302,10 @@ class _DayTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(DateFormat.E().format(date), style: TextStyle(color: fg, fontSize: 12)),
-              Text('${date.day}', style: TextStyle(color: fg, fontSize: 20, fontWeight: FontWeight.w700)),
+              Text(
+                '${date.day}',
+                style: TextStyle(color: fg, fontSize: 20, fontWeight: FontWeight.w700),
+              ),
             ],
           ),
         ),
@@ -340,10 +344,10 @@ class _SlotTile extends StatelessWidget {
             if (slot.status == 'not_yet_open')
               Icon(Icons.notifications_active_outlined, size: 14, color: scheme.outline)
             else
-            Text(
-              available ? formatPaise(slot.pricePaise) : titleCase(slot.status),
-              style: TextStyle(fontSize: 12, color: available ? scheme.onPrimaryContainer : scheme.outline),
-            ),
+              Text(
+                available ? formatPaise(slot.pricePaise) : titleCase(slot.status),
+                style: TextStyle(fontSize: 12, color: available ? scheme.onPrimaryContainer : scheme.outline),
+              ),
           ],
         ),
       ),
@@ -356,17 +360,95 @@ class _Legend extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget dot(Color c, String label) => Row(mainAxisSize: MainAxisSize.min, children: [
-          Container(width: 10, height: 10, decoration: BoxDecoration(color: c, shape: BoxShape.circle)),
-          const SizedBox(width: 6),
-          Text(label, style: Theme.of(context).textTheme.labelMedium),
-        ]);
+    Widget dot(Color c, String label) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(label, style: Theme.of(context).textTheme.labelMedium),
+      ],
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Wrap(spacing: 16, children: [
-        dot(AppColors.available, 'Available'),
-        dot(AppColors.unavailable, 'Booked / closed'),
-      ]),
+      child: Wrap(
+        spacing: 16,
+        children: [dot(AppColors.available, 'Available'), dot(AppColors.unavailable, 'Booked / closed')],
+      ),
+    );
+  }
+}
+
+/// Swipeable header photos with a page indicator; tap opens a full-screen viewer.
+class _PhotoCarousel extends StatefulWidget {
+  const _PhotoCarousel({required this.photos});
+  final List<Photo> photos;
+
+  @override
+  State<_PhotoCarousel> createState() => _PhotoCarouselState();
+}
+
+class _PhotoCarouselState extends State<_PhotoCarousel> {
+  int _page = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final photos = widget.photos;
+    if (photos.isEmpty) return const VenueImage();
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        PageView.builder(
+          itemCount: photos.length,
+          onPageChanged: (i) => setState(() => _page = i),
+          itemBuilder: (context, i) => GestureDetector(
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => _PhotoViewer(photos: photos, initial: i),
+              ),
+            ),
+            child: VenueImage(url: photos[i].url),
+          ),
+        ),
+        if (photos.length > 1)
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(12)),
+              child: Text('${_page + 1}/${photos.length}', style: const TextStyle(color: Colors.white)),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PhotoViewer extends StatelessWidget {
+  const _PhotoViewer({required this.photos, required this.initial});
+  final List<Photo> photos;
+  final int initial;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(backgroundColor: Colors.black, foregroundColor: Colors.white),
+      body: PageView.builder(
+        controller: PageController(initialPage: initial),
+        itemCount: photos.length,
+        itemBuilder: (context, i) => InteractiveViewer(
+          maxScale: 4,
+          child: Center(
+            child: CachedNetworkImage(imageUrl: photos[i].url, fit: BoxFit.contain),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -7,6 +7,7 @@ import '../../widgets/common.dart';
 import 'blocks_screen.dart';
 import 'courts_screen.dart';
 import 'dashboard_screen.dart';
+import 'earnings_screen.dart';
 import 'front_desk_screen.dart';
 import 'hours_screen.dart';
 import 'manage_reviews_screen.dart';
@@ -52,8 +53,12 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
   }
 
   Future<void> _submit(ManagedVenue v) async {
-    if (!await confirm(context, 'Submit for review?',
-        message: 'An admin will check the venue and make it live.', action: 'Submit')) {
+    if (!await confirm(
+      context,
+      'Submit for review?',
+      message: 'An admin will check the venue and make it live.',
+      action: 'Submit',
+    )) {
       return;
     }
     if (!mounted) return;
@@ -63,8 +68,12 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
   }
 
   Future<void> _unpublish(ManagedVenue v) async {
-    if (!await confirm(context, 'Take venue offline?',
-        message: 'Players won\'t see it until you submit it again.', action: 'Unpublish')) {
+    if (!await confirm(
+      context,
+      'Take venue offline?',
+      message: 'Players won\'t see it until you submit it again.',
+      action: 'Unpublish',
+    )) {
       return;
     }
     if (!mounted) return;
@@ -91,7 +100,13 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
           final v = d.venue;
           final scheme = Theme.of(context).colorScheme;
           final checklist = [
-            ('Address, city, location and phone', v.json['address_line'] != null && v.json['city'] != null && v.json['lat'] != null && v.json['phone'] != null),
+            (
+              'Address, city, location and phone',
+              v.json['address_line'] != null &&
+                  v.json['city'] != null &&
+                  v.json['lat'] != null &&
+                  v.json['phone'] != null,
+            ),
             ('At least one active court with a price', d.courts > 0),
             ('Opening hours', d.hours > 0),
             ('At least one photo', d.photos > 0),
@@ -111,13 +126,18 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(v.name, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+                      Text(
+                        v.name,
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                      ),
                       const SizedBox(height: 6),
-                      Row(children: [
-                        StatusPill(v.status),
-                        const SizedBox(width: 8),
-                        Text('You are ${v.access}', style: Theme.of(context).textTheme.labelMedium),
-                      ]),
+                      Row(
+                        children: [
+                          StatusPill(v.status),
+                          const SizedBox(width: 8),
+                          Text('You are ${v.access}', style: Theme.of(context).textTheme.labelMedium),
+                        ],
+                      ),
                       if (v.statusReason != null) ...[
                         const SizedBox(height: 8),
                         Text(v.statusReason!, style: TextStyle(color: scheme.error)),
@@ -137,12 +157,17 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
                           Text('Before you publish', style: Theme.of(context).textTheme.titleSmall),
                           const SizedBox(height: 8),
                           for (final c in checklist)
-                            Row(children: [
-                              Icon(c.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
-                                  size: 20, color: c.$2 ? scheme.primary : scheme.outline),
-                              const SizedBox(width: 8),
-                              Expanded(child: Text(c.$1)),
-                            ]),
+                            Row(
+                              children: [
+                                Icon(
+                                  c.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
+                                  size: 20,
+                                  color: c.$2 ? scheme.primary : scheme.outline,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(child: Text(c.$1)),
+                              ],
+                            ),
                           if (v.isOwner) ...[
                             const SizedBox(height: 12),
                             FilledButton(
@@ -156,33 +181,79 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
                   ),
 
                 const SectionTitle('Daily operations'),
-                _tile(Icons.point_of_sale, 'Front desk', 'Today\'s bookings, walk-ins, check-in',
-                    () => _open(FrontDeskScreen(venue: v))),
-                _tile(Icons.block, 'Blocks & closures', 'Maintenance, private events, holidays',
-                    () => _open(BlocksScreen(venue: v))),
-                if (v.isOwner)
-                  _tile(Icons.insights, 'Dashboard', 'Bookings, earnings, occupancy',
-                      () => _open(DashboardScreen(venue: v))),
-                _tile(Icons.reviews_outlined, 'Reviews', 'Read and reply to player reviews',
-                    () => _open(ManageReviewsScreen(venue: v))),
+                _tile(
+                  Icons.point_of_sale,
+                  'Front desk',
+                  'Today\'s bookings, walk-ins, check-in',
+                  () => _open(FrontDeskScreen(venue: v)),
+                ),
+                _tile(
+                  Icons.block,
+                  'Blocks & closures',
+                  'Maintenance, private events, holidays',
+                  () => _open(BlocksScreen(venue: v)),
+                ),
+                if (v.isOwner) ...[
+                  _tile(
+                    Icons.insights,
+                    'Dashboard',
+                    'Bookings, earnings, occupancy',
+                    () => _open(DashboardScreen(venue: v)),
+                  ),
+                  _tile(
+                    Icons.account_balance_wallet_outlined,
+                    'Earnings & payouts',
+                    'Balance, ledger, bank/UPI details',
+                    () => _open(EarningsScreen(venue: v)),
+                  ),
+                ],
+                _tile(
+                  Icons.reviews_outlined,
+                  'Reviews',
+                  'Read and reply to player reviews',
+                  () => _open(ManageReviewsScreen(venue: v)),
+                ),
 
                 const SectionTitle('Setup'),
                 if (v.canEdit)
-                  _tile(Icons.edit_outlined, 'Venue details', 'Name, address, booking rules',
-                      () => _open(VenueFormScreen(venue: v))),
-                _tile(Icons.sports_tennis, 'Courts & pricing', '${d.courts} active', () => _open(CourtsScreen(venue: v))),
-                _tile(Icons.schedule, 'Opening hours', d.hours == 0 ? 'Not set' : '${d.hours} time ranges',
-                    () => _open(HoursScreen(venue: v))),
+                  _tile(
+                    Icons.edit_outlined,
+                    'Venue details',
+                    'Name, address, booking rules',
+                    () => _open(VenueFormScreen(venue: v)),
+                  ),
+                _tile(
+                  Icons.sports_tennis,
+                  'Courts & pricing',
+                  '${d.courts} active',
+                  () => _open(CourtsScreen(venue: v)),
+                ),
+                _tile(
+                  Icons.schedule,
+                  'Opening hours',
+                  d.hours == 0 ? 'Not set' : '${d.hours} time ranges',
+                  () => _open(HoursScreen(venue: v)),
+                ),
                 _tile(Icons.photo_library_outlined, 'Photos', '${d.photos} of 15', () => _open(PhotosScreen(venue: v))),
                 if (v.isOwner || v.access == 'manager')
-                  _tile(Icons.group_outlined, 'Staff', 'Managers and front-desk staff', () => _open(StaffScreen(venue: v))),
+                  _tile(
+                    Icons.group_outlined,
+                    'Staff',
+                    'Managers and front-desk staff',
+                    () => _open(StaffScreen(venue: v)),
+                  ),
 
                 if (v.isOwner) ...[
                   const SectionTitle('Danger zone'),
                   if (v.isListed)
                     _tile(Icons.visibility_off_outlined, 'Unpublish', 'Hide from players', () => _unpublish(v)),
-                  _tile(Icons.delete_outline, 'Delete venue', 'Only when there are no upcoming bookings',
-                      () => _delete(v), color: scheme.error),
+                  _tile(
+                    Icons.delete_outline,
+                    'Delete venue',
+                    'Only when there are no upcoming bookings',
+                    () => _delete(v),
+                    color: scheme.error,
+                  ),
                 ],
               ],
             ),
@@ -193,10 +264,10 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
   }
 
   Widget _tile(IconData icon, String title, String subtitle, VoidCallback onTap, {Color? color}) => ListTile(
-        leading: Icon(icon, color: color),
-        title: Text(title, style: TextStyle(color: color)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
-      );
+    leading: Icon(icon, color: color),
+    title: Text(title, style: TextStyle(color: color)),
+    subtitle: Text(subtitle),
+    trailing: const Icon(Icons.chevron_right),
+    onTap: onTap,
+  );
 }

@@ -10,5 +10,9 @@ String formatDate(String iso) => DateFormat('EEE, d MMM').format(DateTime.parse(
 
 String isoDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
 
-String titleCase(String s) =>
-    s.replaceAll('_', ' ').replaceAll('-', ' ').split(' ').map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+String titleCase(String s) => s
+    .replaceAll('_', ' ')
+    .replaceAll('-', ' ')
+    .split(' ')
+    .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+    .join(' ');

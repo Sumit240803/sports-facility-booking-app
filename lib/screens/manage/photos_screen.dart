@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -50,11 +51,22 @@ class _PhotosScreenState extends State<PhotosScreen> {
     final action = await showModalBottomSheet<String>(
       context: context,
       builder: (context) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          if (!p.isCover)
-            ListTile(leading: const Icon(Icons.star_outline), title: const Text('Set as cover'), onTap: () => Navigator.pop(context, 'cover')),
-          ListTile(leading: const Icon(Icons.delete_outline), title: const Text('Delete'), onTap: () => Navigator.pop(context, 'delete')),
-        ]),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (!p.isCover)
+              ListTile(
+                leading: const Icon(Icons.star_outline),
+                title: const Text('Set as cover'),
+                onTap: () => Navigator.pop(context, 'cover'),
+              ),
+            ListTile(
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('Delete'),
+              onTap: () => Navigator.pop(context, 'delete'),
+            ),
+          ],
+        ),
       ),
     );
     if (action == null || !mounted) return;
@@ -70,7 +82,30 @@ class _PhotosScreenState extends State<PhotosScreen> {
   Widget build(BuildContext context) {
     final canEdit = widget.venue.canEdit;
     return Scaffold(
-      appBar: AppBar(title: const Text('Photos')),
+      appBar: AppBar(
+        title: const Text('Photos'),
+        actions: [
+          if (canEdit)
+            FutureBuilder<List<Photo>>(
+              future: _photos,
+              builder: (context, snap) => (snap.data?.length ?? 0) > 1
+                  ? TextButton.icon(
+                      onPressed: () async {
+                        final saved = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => _ReorderPhotosScreen(venue: widget.venue, photos: snap.data!),
+                          ),
+                        );
+                        if (saved == true && mounted) setState(_load);
+                      },
+                      icon: const Icon(Icons.swap_vert),
+                      label: const Text('Reorder'),
+                    )
+                  : const SizedBox.shrink(),
+            ),
+        ],
+      ),
       floatingActionButton: canEdit
           ? FloatingActionButton.extended(
               onPressed: _uploading ? null : _upload,
@@ -91,7 +126,11 @@ class _PhotosScreenState extends State<PhotosScreen> {
         ),
         builder: (context, photos) => GridView.builder(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 2, mainAxisSpacing: 8, crossAxisSpacing: 8),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
+          ),
           itemCount: photos.length,
           itemBuilder: (context, i) {
             final p = photos[i];
@@ -99,15 +138,87 @@ class _PhotosScreenState extends State<PhotosScreen> {
               onTap: canEdit ? () => _actions(p) : null,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Stack(fit: StackFit.expand, children: [
-                  Image.network(p.thumbUrl, fit: BoxFit.cover, errorBuilder: (_, _, _) => const ColoredBox(color: Colors.black12)),
-                  if (p.isCover)
-                    const Positioned(left: 8, top: 8, child: Chip(label: Text('Cover'), visualDensity: VisualDensity.compact)),
-                ]),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: p.thumbUrl,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => const ColoredBox(color: Colors.black12),
+                    ),
+                    if (p.isCover)
+                      const Positioned(
+                        left: 8,
+                        top: 8,
+                        child: Chip(label: Text('Cover'), visualDensity: VisualDensity.compact),
+                      ),
+                  ],
+                ),
               ),
             );
           },
         ),
+      ),
+    );
+  }
+}
+
+class _ReorderPhotosScreen extends StatefulWidget {
+  const _ReorderPhotosScreen({required this.venue, required this.photos});
+  final ManagedVenue venue;
+  final List<Photo> photos;
+
+  @override
+  State<_ReorderPhotosScreen> createState() => _ReorderPhotosScreenState();
+}
+
+class _ReorderPhotosScreenState extends State<_ReorderPhotosScreen> {
+  late final List<Photo> _order = [...widget.photos];
+  bool _saving = false;
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final nav = Navigator.of(context);
+    final ok = await runAction(
+      context,
+      () => context.api.reorderPhotos(widget.venue.id, _order.map((p) => p.id).toList()),
+      success: 'Order saved',
+    );
+    if (ok) {
+      nav.pop(true);
+    } else if (mounted) {
+      setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Drag to reorder'),
+        actions: [TextButton(onPressed: _saving ? null : _save, child: const Text('Save'))],
+      ),
+      body: ReorderableListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: _order.length,
+        onReorderItem: (from, to) => setState(() => _order.insert(to, _order.removeAt(from))),
+        itemBuilder: (context, i) {
+          final p = _order[i];
+          return Card(
+            key: ValueKey(p.id),
+            margin: const EdgeInsets.only(bottom: 8),
+            child: ListTile(
+              contentPadding: const EdgeInsets.all(8),
+              leading: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(imageUrl: p.thumbUrl, width: 96, height: 64, fit: BoxFit.cover),
+              ),
+              title: Text('Photo ${i + 1}'),
+              subtitle: p.isCover ? const Text('Cover') : null,
+              trailing: const Icon(Icons.drag_handle),
+            ),
+          );
+        },
       ),
     );
   }

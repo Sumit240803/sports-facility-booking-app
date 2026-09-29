@@ -77,11 +77,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
 
   Widget _status(OwnerApplication app) {
     final (icon, title, message) = switch (app.status) {
-      'approved' => (
-          Icons.verified,
-          'You\'re approved!',
-          'Tap "Refresh my access" to unlock the Manage tab.'
-        ),
+      'approved' => (Icons.verified, 'You\'re approved!', 'Tap "Refresh my access" to unlock the Manage tab.'),
       'rejected' => (Icons.cancel_outlined, 'Application rejected', app.rejectionReason ?? 'No reason given.'),
       _ => (Icons.hourglass_top, 'Application under review', 'We\'ll notify you once an admin reviews it.'),
     };
@@ -90,12 +86,14 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
       children: [
         MessageView(icon: icon, title: title, message: message),
         Card(
-          child: Column(children: [
-            ListTile(title: const Text('Business'), subtitle: Text(app.businessName)),
-            ListTile(title: const Text('Phone'), subtitle: Text(app.businessPhone)),
-            if (app.gstin != null) ListTile(title: const Text('GSTIN'), subtitle: Text(app.gstin!)),
-            ListTile(title: const Text('Status'), trailing: StatusPill(app.status)),
-          ]),
+          child: Column(
+            children: [
+              ListTile(title: const Text('Business'), subtitle: Text(app.businessName)),
+              ListTile(title: const Text('Phone'), subtitle: Text(app.businessPhone)),
+              if (app.gstin != null) ListTile(title: const Text('GSTIN'), subtitle: Text(app.gstin!)),
+              ListTile(title: const Text('Status'), trailing: StatusPill(app.status)),
+            ],
+          ),
         ),
         const SizedBox(height: 16),
         if (app.status == 'rejected')
@@ -151,10 +149,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
             decoration: const InputDecoration(labelText: 'GSTIN (optional)', prefixIcon: Icon(Icons.receipt_long)),
           ),
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _busy ? null : _submit,
-            child: Text(reapplying ? 'Re-apply' : 'Submit application'),
-          ),
+          FilledButton(onPressed: _busy ? null : _submit, child: Text(reapplying ? 'Re-apply' : 'Submit application')),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -55,7 +56,10 @@ class _VenueReviewsSectionState extends State<VenueReviewsSection> {
                 child: Text('No reviews yet. Players can review after they play here.'),
               )
             else ...[
-              Padding(padding: const EdgeInsets.symmetric(horizontal: 16), child: RatingBreakdown(page: page)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: RatingBreakdown(page: page),
+              ),
               for (final r in page.reviews) ReviewTile(review: r),
             ],
           ],
@@ -78,7 +82,10 @@ class RatingBreakdown extends StatelessWidget {
       children: [
         Column(
           children: [
-            Text(avg.toStringAsFixed(1), style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800)),
+            Text(
+              avg.toStringAsFixed(1),
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800),
+            ),
             Stars(avg.round()),
             Text('$total ratings', style: Theme.of(context).textTheme.labelSmall),
           ],
@@ -129,7 +136,7 @@ class ReviewTile extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 16,
-                foregroundImage: review.authorAvatar != null ? NetworkImage(review.authorAvatar!) : null,
+                foregroundImage: review.authorAvatar != null ? CachedNetworkImageProvider(review.authorAvatar!) : null,
                 child: Text(review.authorName.characters.first.toUpperCase()),
               ),
               const SizedBox(width: 10),
@@ -138,23 +145,24 @@ class ReviewTile extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(review.authorName, style: text.titleSmall),
-                    Row(children: [
-                      Stars(review.rating, size: 14),
-                      const SizedBox(width: 6),
-                      Text(DateFormat('d MMM yyyy').format(DateTime.parse(review.createdAt).toLocal()),
-                          style: text.labelSmall),
-                      if (review.isHidden) ...[const SizedBox(width: 6), const StatusPill('hidden')],
-                    ]),
+                    Row(
+                      children: [
+                        Stars(review.rating, size: 14),
+                        const SizedBox(width: 6),
+                        Text(
+                          DateFormat('d MMM yyyy').format(DateTime.parse(review.createdAt).toLocal()),
+                          style: text.labelSmall,
+                        ),
+                        if (review.isHidden) ...[const SizedBox(width: 6), const StatusPill('hidden')],
+                      ],
+                    ),
                   ],
                 ),
               ),
               ?trailing,
             ],
           ),
-          if (review.comment?.isNotEmpty ?? false) ...[
-            const SizedBox(height: 8),
-            Text(review.comment!),
-          ],
+          if (review.comment?.isNotEmpty ?? false) ...[const SizedBox(height: 8), Text(review.comment!)],
           if (review.ownerReply != null) ...[
             const SizedBox(height: 8),
             Container(
@@ -225,7 +233,10 @@ class _AllReviewsScreenState extends State<AllReviewsScreen> {
         builder: (context, page) => ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            Padding(padding: const EdgeInsets.all(16), child: RatingBreakdown(page: page)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: RatingBreakdown(page: page),
+            ),
             const Divider(),
             for (final r in page.reviews) ReviewTile(review: r),
           ],
@@ -288,8 +299,10 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Rate ${widget.venueName}',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          Text(
+            'Rate ${widget.venueName}',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,

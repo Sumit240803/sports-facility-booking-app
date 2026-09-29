@@ -9,6 +9,7 @@ class AsyncView<T> extends StatelessWidget {
     required this.onRetry,
     this.isEmpty,
     this.empty,
+    this.loading,
   });
 
   final Future<T> future;
@@ -17,13 +18,16 @@ class AsyncView<T> extends StatelessWidget {
   final bool Function(T)? isEmpty;
   final Widget? empty;
 
+  /// Shown while loading (defaults to a spinner), e.g. a skeleton list.
+  final Widget? loading;
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<T>(
       future: future,
       builder: (context, snap) {
         if (snap.connectionState != ConnectionState.done) {
-          return const Center(child: CircularProgressIndicator());
+          return loading ?? const Center(child: CircularProgressIndicator());
         }
         if (snap.hasError) {
           return MessageView(
@@ -63,7 +67,11 @@ class MessageView extends StatelessWidget {
             Text(title, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
             if (message != null) ...[
               const SizedBox(height: 8),
-              Text(message!, textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
+              Text(
+                message!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
             ],
             if (action != null) ...[const SizedBox(height: 16), SizedBox(width: 160, child: action)],
           ],

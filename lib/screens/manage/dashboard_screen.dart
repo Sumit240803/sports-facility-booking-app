@@ -24,12 +24,51 @@ class _DashboardScreenState extends State<DashboardScreen> {
     _load();
   }
 
-  void _load() => _data = context.api.venueDashboard(widget.venue.id);
+  DateTimeRange? _range; // null = server default (last 30 days)
+
+  void _load() => _data = context.api.venueDashboard(
+    widget.venue.id,
+    from: _range == null ? null : isoDate(_range!.start),
+    to: _range == null ? null : isoDate(_range!.end),
+  );
+
+  Future<void> _pickRange() async {
+    final now = DateTime.now();
+    final r = await showDateRangePicker(
+      context: context,
+      firstDate: now.subtract(const Duration(days: 365)),
+      lastDate: now.add(const Duration(days: 30)),
+      initialDateRange: _range ?? DateTimeRange(start: now.subtract(const Duration(days: 29)), end: now),
+    );
+    if (r == null) return;
+    if (r.duration.inDays > 365) {
+      if (mounted) showMessage(context, 'Pick at most 366 days');
+      return;
+    }
+    setState(() {
+      _range = r;
+      _load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dashboard')),
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: [
+          IconButton(tooltip: 'Date range', onPressed: _pickRange, icon: const Icon(Icons.date_range)),
+          if (_range != null)
+            IconButton(
+              tooltip: 'Last 30 days',
+              onPressed: () => setState(() {
+                _range = null;
+                _load();
+              }),
+              icon: const Icon(Icons.restart_alt),
+            ),
+        ],
+      ),
       body: AsyncView<Json>(
         future: _data,
         onRetry: () => setState(_load),
@@ -61,11 +100,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   children: [
                     _Stat('Bookings', '${n(bookings, 'total')}', Icons.event_available),
                     _Stat('Booked value', formatPaise(n(money, 'booked_value_paise')), Icons.receipt_long),
-                    _Stat('Your earnings', formatPaise(n(money, 'venue_earnings_paise')), Icons.account_balance_wallet_outlined),
+                    _Stat(
+                      'Your earnings',
+                      formatPaise(n(money, 'venue_earnings_paise')),
+                      Icons.account_balance_wallet_outlined,
+                    ),
                     _Stat('Balance due', formatPaise(n(money, 'balance_paise')), Icons.savings_outlined),
                     _Stat('Collected at venue', formatPaise(n(money, 'collected_at_venue_paise')), Icons.point_of_sale),
-                    _Stat('Rating', ratings['average'] == null ? '—' : '${(ratings['average'] as num).toStringAsFixed(1)} ★',
-                        Icons.star_outline),
+                    _Stat(
+                      'Rating',
+                      ratings['average'] == null ? '—' : '${(ratings['average'] as num).toStringAsFixed(1)} ★',
+                      Icons.star_outline,
+                    ),
                     _Stat('Cancellations', '${bookings['cancellation_rate_percent'] ?? 0}%', Icons.event_busy),
                     _Stat('No-shows', '${bookings['no_show_rate_percent'] ?? 0}%', Icons.person_off_outlined),
                   ],
@@ -78,10 +124,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(children: [
-                            Expanded(child: Text('${c['name']}')),
-                            Text('${c['occupancy_percent'] ?? 0}%'),
-                          ]),
+                          Row(
+                            children: [
+                              Expanded(child: Text('${c['name']}')),
+                              Text('${c['occupancy_percent'] ?? 0}%'),
+                            ],
+                          ),
                           const SizedBox(height: 4),
                           LinearProgressIndicator(
                             value: ((c['occupancy_percent'] as num?) ?? 0) / 100,
@@ -124,15 +172,22 @@ class _Stat extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Row(children: [
-              Icon(icon, size: 18, color: scheme.primary),
-              const SizedBox(width: 6),
-              Expanded(child: Text(label, style: Theme.of(context).textTheme.labelMedium, overflow: TextOverflow.ellipsis)),
-            ]),
+            Row(
+              children: [
+                Icon(icon, size: 18, color: scheme.primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(label, style: Theme.of(context).textTheme.labelMedium, overflow: TextOverflow.ellipsis),
+                ),
+              ],
+            ),
             FittedBox(
               fit: BoxFit.scaleDown,
               alignment: Alignment.centerLeft,
-              child: Text(value, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+              child: Text(
+                value,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              ),
             ),
           ],
         ),

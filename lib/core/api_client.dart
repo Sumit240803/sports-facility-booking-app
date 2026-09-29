@@ -31,12 +31,12 @@ class ApiClient {
   final Session session;
   final _http = http.Client();
 
-  Future<Map<String, dynamic>> get(String path, {Map<String, Object?>? query}) =>
-      _send('GET', path, query: query);
+  Future<Map<String, dynamic>> get(String path, {Map<String, Object?>? query}) => _send('GET', path, query: query);
   Future<Map<String, dynamic>> post(String path, [Object? body]) => _send('POST', path, body: body);
   Future<Map<String, dynamic>> patch(String path, Object? body) => _send('PATCH', path, body: body);
   Future<Map<String, dynamic>> put(String path, [Object? body]) => _send('PUT', path, body: body);
   Future<Map<String, dynamic>> delete(String path) => _send('DELETE', path);
+  Future<Map<String, dynamic>> deleteWithBody(String path, Object body) => _send('DELETE', path, body: body);
 
   /// Multipart upload of a single file field.
   Future<Map<String, dynamic>> upload(String path, String field, String filePath, {bool retried = false}) async {

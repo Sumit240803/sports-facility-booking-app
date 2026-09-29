@@ -53,7 +53,11 @@ class _StaffScreenState extends State<StaffScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Staff')),
       floatingActionButton: isOwner
-          ? FloatingActionButton.extended(onPressed: _invite, icon: const Icon(Icons.person_add), label: const Text('Invite'))
+          ? FloatingActionButton.extended(
+              onPressed: _invite,
+              icon: const Icon(Icons.person_add),
+              label: const Text('Invite'),
+            )
           : null,
       body: AsyncView<(List<StaffMember>, List<StaffInvite>)>(
         future: _data,

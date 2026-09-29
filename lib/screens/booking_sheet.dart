@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app_scope.dart';
 import '../core/format.dart';
+import '../core/payment_flow.dart';
 import '../data/models.dart';
 
 /// Pick duration + payment method, show a live quote, then create the booking.
@@ -35,8 +36,7 @@ class _BookingSheetState extends State<BookingSheet> {
     _quote ??= _fetchQuote();
   }
 
-  Future<Quote> _fetchQuote() =>
-      context.api.quote(widget.court.id, widget.date, widget.slot.start, _minutes, _method);
+  Future<Quote> _fetchQuote() => context.api.quote(widget.court.id, widget.date, widget.slot.start, _minutes, _method);
 
   void _refreshQuote() => setState(() => _quote = _fetchQuote());
 
@@ -46,12 +46,21 @@ class _BookingSheetState extends State<BookingSheet> {
     final navigator = Navigator.of(context);
     try {
       final b = await context.api.book(widget.court.id, widget.date, widget.slot.start, _minutes, _method);
+      if (b.awaitingPayment && mounted) {
+        // Slot is held for 10 minutes; pay now. If the user backs out, they can pay from My bookings.
+        final paid = await payForBooking(context, b.id);
+        navigator.pop(true);
+        if (!paid) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text('Booking ${b.reference} is held for 10 minutes. Pay from My bookings to confirm it.'),
+            ),
+          );
+        }
+        return;
+      }
       navigator.pop(true);
-      messenger.showSnackBar(SnackBar(
-        content: Text(b.status == 'pending_payment'
-            ? 'Booking ${b.reference} is held — complete payment from My bookings.'
-            : 'Booked! Reference ${b.reference}'),
-      ));
+      messenger.showSnackBar(SnackBar(content: Text('Booked! Reference ${b.reference}')));
     } catch (e) {
       messenger.showSnackBar(SnackBar(content: Text('$e')));
       if (mounted) setState(() => _booking = false);
@@ -116,7 +125,9 @@ class _BookingSheetState extends State<BookingSheet> {
               future: _quote,
               builder: (context, snap) {
                 if (snap.connectionState != ConnectionState.done) {
-                  return const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+                  return const Center(
+                    child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()),
+                  );
                 }
                 if (snap.hasError) {
                   return Text('${snap.error}', style: TextStyle(color: scheme.error));
@@ -128,7 +139,8 @@ class _BookingSheetState extends State<BookingSheet> {
                     child: Column(
                       children: [
                         _row('Subtotal', formatPaise(q.subtotalPaise)),
-                        if (q.discountPaise > 0) _row('Online discount (${q.discountPercent}%)', '− ${formatPaise(q.discountPaise)}'),
+                        if (q.discountPaise > 0)
+                          _row('Online discount (${q.discountPercent}%)', '− ${formatPaise(q.discountPaise)}'),
                         const Divider(height: 24),
                         _row('Total', formatPaise(q.totalPaise), bold: true),
                       ],
@@ -142,7 +154,7 @@ class _BookingSheetState extends State<BookingSheet> {
               onPressed: _booking ? null : _confirm,
               child: _booking
                   ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Confirm booking'),
+                  : Text(_method == 'online' ? 'Book & pay' : 'Confirm booking'),
             ),
           ],
         ),
@@ -154,7 +166,12 @@ class _BookingSheetState extends State<BookingSheet> {
     final style = bold ? const TextStyle(fontWeight: FontWeight.w700, fontSize: 16) : null;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(children: [Expanded(child: Text(label, style: style)), Text(value, style: style)]),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: style)),
+          Text(value, style: style),
+        ],
+      ),
     );
   }
 }

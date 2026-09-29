@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'core/profile_store.dart';
+import 'core/push_service.dart';
 import 'core/session.dart';
 import 'data/easyplay_api.dart';
 
@@ -11,12 +12,14 @@ class AppScope extends InheritedWidget {
     required this.session,
     required this.api,
     required this.profile,
+    required this.push,
     required super.child,
   });
 
   final Session session;
   final EasyPlayApi api;
   final ProfileStore profile;
+  final PushService push;
 
   static AppScope of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<AppScope>()!;
 
@@ -28,4 +31,5 @@ extension AppScopeX on BuildContext {
   EasyPlayApi get api => AppScope.of(this).api;
   Session get session => AppScope.of(this).session;
   ProfileStore get profileStore => AppScope.of(this).profile;
+  PushService get push => AppScope.of(this).push;
 }

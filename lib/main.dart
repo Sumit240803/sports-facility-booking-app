@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_scope.dart';
 import 'core/api_client.dart';
 import 'core/profile_store.dart';
+import 'core/push_service.dart';
 import 'core/session.dart';
 import 'data/easyplay_api.dart';
 import 'login.dart';
@@ -13,6 +14,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final session = Session();
   await session.load();
+  await PushService.initFirebase();
   runApp(MainApp(session: session));
 }
 
@@ -27,6 +29,7 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   late final api = EasyPlayApi(ApiClient(widget.session));
   late final profile = ProfileStore(api);
+  late final push = PushService(api);
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +38,10 @@ class _MainAppState extends State<MainApp> {
       session: session,
       api: api,
       profile: profile,
+      push: push,
       child: MaterialApp(
+        navigatorKey: navigatorKey,
+        scaffoldMessengerKey: messengerKey,
         title: 'EasyPlay',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),

@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../app_scope.dart';
@@ -5,7 +6,9 @@ import '../core/format.dart';
 import '../data/models.dart';
 import 'favourites_screen.dart';
 import 'manage/my_venues_screen.dart';
+import 'my_reviews_screen.dart';
 import 'owner_application_screen.dart';
+import '../widgets/common.dart';
 import 'reminders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -13,16 +16,17 @@ class ProfileScreen extends StatelessWidget {
 
   Future<void> _logout(BuildContext context) async {
     final session = context.session;
+    final api = context.api;
+    await context.push.stop();
     try {
-      await context.api.logout();
+      await api.logout();
     } catch (_) {
       // Sign out locally even if the server call fails.
     }
     await session.clear();
   }
 
-  void _push(BuildContext context, Widget page) =>
-      Navigator.push(context, MaterialPageRoute(builder: (_) => page));
+  void _push(BuildContext context, Widget page) => Navigator.push(context, MaterialPageRoute(builder: (_) => page));
 
   @override
   Widget build(BuildContext context) {
@@ -46,72 +50,126 @@ class ProfileScreen extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 44,
                     backgroundColor: scheme.primaryContainer,
-                    foregroundImage: p.avatarUrl != null ? NetworkImage(p.avatarUrl!) : null,
-                    child: Text(name.characters.first.toUpperCase(),
-                        style: text.headlineMedium?.copyWith(color: scheme.onPrimaryContainer)),
+                    foregroundImage: p.avatarUrl != null ? CachedNetworkImageProvider(p.avatarUrl!) : null,
+                    child: Text(
+                      name.characters.first.toUpperCase(),
+                      style: text.headlineMedium?.copyWith(color: scheme.onPrimaryContainer),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(name, textAlign: TextAlign.center, style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                ),
                 if (p.email != null)
-                  Text(p.email!, textAlign: TextAlign.center, style: TextStyle(color: scheme.onSurfaceVariant)),
+                  Text(
+                    p.email!,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: scheme.onSurfaceVariant),
+                  ),
                 const SizedBox(height: 4),
-                Center(child: Chip(label: Text(titleCase(p.role)), visualDensity: VisualDensity.compact)),
+                Center(
+                  child: Chip(label: Text(titleCase(p.role)), visualDensity: VisualDensity.compact),
+                ),
                 const SizedBox(height: 16),
                 Card(
-                  child: Column(children: [
-                    ListTile(leading: const Icon(Icons.phone_outlined), title: const Text('Phone'), subtitle: Text(p.phone ?? 'Not set')),
-                    ListTile(leading: const Icon(Icons.location_city), title: const Text('City'), subtitle: Text(p.city ?? 'Not set')),
-                    ListTile(
-                      leading: const Icon(Icons.sports_soccer),
-                      title: const Text('Favourite sports'),
-                      subtitle: Text(p.preferredSports.isEmpty ? 'Not set' : p.preferredSports.map(titleCase).join(', ')),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.edit_outlined),
-                      title: const Text('Edit profile'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        final updated = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(builder: (_) => EditProfileScreen(profile: p)),
-                        );
-                        if (updated == true) store.load();
-                      },
-                    ),
-                  ]),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.phone_outlined),
+                        title: const Text('Phone'),
+                        subtitle: Text(p.phone ?? 'Not set'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.location_city),
+                        title: const Text('City'),
+                        subtitle: Text(p.city ?? 'Not set'),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.sports_soccer),
+                        title: const Text('Favourite sports'),
+                        subtitle: Text(
+                          p.preferredSports.isEmpty ? 'Not set' : p.preferredSports.map(titleCase).join(', '),
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.edit_outlined),
+                        title: const Text('Edit profile'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          final updated = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(builder: (_) => EditProfileScreen(profile: p)),
+                          );
+                          if (updated == true) store.load();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Card(
-                  child: Column(children: [
-                    ListTile(
-                      leading: const Icon(Icons.favorite_border),
-                      title: const Text('Favourites'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _push(context, const FavouritesScreen()),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.alarm),
-                      title: const Text('Slot reminders'),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => _push(context, const RemindersScreen()),
-                    ),
-                    if (p.role == 'player') ...[
-                      ListTile(
-                        leading: const Icon(Icons.badge_outlined),
-                        title: const Text('Venues I work at'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(context, const MyVenuesScreen(standalone: true)),
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        secondary: const Icon(Icons.notifications_active_outlined),
+                        title: const Text('Push notifications'),
+                        subtitle: const Text('Bookings, reminders and updates on this phone'),
+                        value: p.notifyPush,
+                        onChanged: (v) =>
+                            runAction(context, () async => store.set(await context.api.setNotificationPrefs(push: v))),
                       ),
-                      ListTile(
-                        leading: const Icon(Icons.add_business_outlined),
-                        title: const Text('List your venue'),
-                        subtitle: const Text('Apply to become a venue owner'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(context, const OwnerApplicationScreen()),
+                      SwitchListTile(
+                        secondary: const Icon(Icons.mail_outline),
+                        title: const Text('Email notifications'),
+                        value: p.notifyEmail,
+                        onChanged: (v) =>
+                            runAction(context, () async => store.set(await context.api.setNotificationPrefs(email: v))),
                       ),
                     ],
-                  ]),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Card(
+                  child: Column(
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.favorite_border),
+                        title: const Text('Favourites'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(context, const FavouritesScreen()),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.rate_review_outlined),
+                        title: const Text('My reviews'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(context, const MyReviewsScreen()),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.alarm),
+                        title: const Text('Slot reminders'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => _push(context, const RemindersScreen()),
+                      ),
+                      if (p.role == 'player') ...[
+                        ListTile(
+                          leading: const Icon(Icons.badge_outlined),
+                          title: const Text('Venues I work at'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _push(context, const MyVenuesScreen(standalone: true)),
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.add_business_outlined),
+                          title: const Text('List your venue'),
+                          subtitle: const Text('Apply to become a venue owner'),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _push(context, const OwnerApplicationScreen()),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 16),
                 OutlinedButton.icon(
@@ -184,15 +242,25 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          TextField(controller: _name, decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline))),
+          TextField(
+            controller: _name,
+            decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline)),
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Phone', hintText: '+919876543210', prefixIcon: Icon(Icons.phone_outlined)),
+            decoration: const InputDecoration(
+              labelText: 'Phone',
+              hintText: '+919876543210',
+              prefixIcon: Icon(Icons.phone_outlined),
+            ),
           ),
           const SizedBox(height: 12),
-          TextField(controller: _city, decoration: const InputDecoration(labelText: 'City', prefixIcon: Icon(Icons.location_city))),
+          TextField(
+            controller: _city,
+            decoration: const InputDecoration(labelText: 'City', prefixIcon: Icon(Icons.location_city)),
+          ),
           const SizedBox(height: 20),
           Text('Favourite sports', style: Theme.of(context).textTheme.titleSmall),
           const SizedBox(height: 8),

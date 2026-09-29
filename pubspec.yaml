@@ -7,19 +7,37 @@ environment:
   sdk: ^3.13.4
 
 dependencies:
+  cached_network_image: ^4.0.2
+  firebase_core: ^4.15.0
+  firebase_messaging: ^16.7.0
   flutter:
     sdk: flutter
   flutter_web_auth_2: ^5.1.0
+  geolocator: ^14.1.1
   http: ^1.6.0
   image_picker: ^1.2.3
   intl: ^0.20.3
+  mobile_scanner: ^7.4.2
   qr_flutter: ^4.1.0
+  razorpay_flutter: ^1.4.7
   shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/icon.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: assets/icon/icon.png
+  adaptive_icon_background: "#0B8A5B"
+  adaptive_icon_foreground: assets/icon/icon_foreground.png
+  min_sdk_android: 21

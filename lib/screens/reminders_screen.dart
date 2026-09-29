@@ -6,6 +6,7 @@ import '../core/format.dart';
 import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
+import '../widgets/skeleton.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -35,6 +36,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
       appBar: AppBar(title: const Text('Slot reminders')),
       body: AsyncView<List<Reminder>>(
         future: _reminders,
+        loading: const SkeletonList(),
         onRetry: () => setState(_load),
         isEmpty: (r) => r.isEmpty,
         empty: const MessageView(

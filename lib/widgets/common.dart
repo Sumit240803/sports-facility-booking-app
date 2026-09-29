@@ -114,7 +114,10 @@ class StatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
-      child: Text(titleCase(status), style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+      child: Text(
+        titleCase(status),
+        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
+      ),
     );
   }
 }
@@ -144,3 +147,49 @@ int? rupeesToPaise(String text) {
 }
 
 String paiseToRupeesText(int? paise) => paise == null ? '' : (paise / 100).toStringAsFixed(paise % 100 == 0 ? 0 : 2);
+
+/// Small labelled metric card used on dashboards.
+class StatTile extends StatelessWidget {
+  const StatTile(this.label, this.value, this.icon, {super.key, this.color, this.onTap});
+  final String label, value;
+  final IconData icon;
+  final Color? color;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = color ?? scheme.primary;
+    return Card(
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: accent),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(label, style: Theme.of(context).textTheme.labelMedium, overflow: TextOverflow.ellipsis),
+                  ),
+                ],
+              ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -22,7 +22,13 @@ String prettyTime(String hhmm) {
 
 /// Dropdown of half-hour times.
 class TimeDropdown extends StatelessWidget {
-  const TimeDropdown({super.key, required this.label, required this.value, required this.onChanged, this.allowMidnightEnd = true});
+  const TimeDropdown({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.onChanged,
+    this.allowMidnightEnd = true,
+  });
   final String label;
   final String value;
   final ValueChanged<String> onChanged;
@@ -42,8 +48,11 @@ class TimeDropdown extends StatelessWidget {
 }
 
 class HoursScreen extends StatefulWidget {
-  const HoursScreen({super.key, required this.venue});
+  const HoursScreen({super.key, required this.venue, this.court});
   final ManagedVenue venue;
+
+  /// When set, edits this court's own hours instead of the venue's.
+  final Court? court;
 
   @override
   State<HoursScreen> createState() => _HoursScreenState();
@@ -55,6 +64,9 @@ class _HoursScreenState extends State<HoursScreen> {
   bool _dirty = false;
   bool _saving = false;
 
+  /// Court mode: true while the court has its own hours (false = follows the venue).
+  bool _customised = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -62,11 +74,40 @@ class _HoursScreenState extends State<HoursScreen> {
   }
 
   void _load() {
-    _loaded = context.api.venueHours(widget.venue.id).then((h) {
-      _hours = [...h];
-      _dirty = false;
-      return h;
-    });
+    final api = context.api;
+    final court = widget.court;
+    _loaded =
+        (court == null
+                ? api.venueHours(widget.venue.id)
+                : api.courtHours(widget.venue.id).then((m) {
+                    _customised = m.containsKey(court.id);
+                    // Start a customisation from the venue's hours.
+                    return _customised ? Future.value(m[court.id]!) : api.venueHours(widget.venue.id);
+                  }))
+            .then((h) {
+              _hours = [...h];
+              _dirty = false;
+              return h;
+            });
+  }
+
+  Future<void> _followVenue() async {
+    if (!await confirm(
+      context,
+      'Use venue hours?',
+      message: '${widget.court!.name} will follow the venue\'s opening hours again.',
+      action: 'Use venue hours',
+    )) {
+      return;
+    }
+    if (!mounted) return;
+    if (await runAction(
+      context,
+      () => context.api.resetCourtHours(widget.venue.id, widget.court!.id),
+      success: 'Court follows venue hours',
+    )) {
+      setState(_load);
+    }
   }
 
   Future<void> _addRange({List<int>? days}) async {
@@ -90,7 +131,9 @@ class _HoursScreenState extends State<HoursScreen> {
     setState(() => _saving = true);
     final ok = await runAction(
       context,
-      () => context.api.saveVenueHours(widget.venue.id, _hours!),
+      () => widget.court == null
+          ? context.api.saveVenueHours(widget.venue.id, _hours!)
+          : context.api.saveCourtHours(widget.venue.id, widget.court!.id, _hours!),
       success: 'Opening hours saved',
     );
     if (!mounted) return;
@@ -112,10 +155,11 @@ class _HoursScreenState extends State<HoursScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('Opening hours'),
+          title: Text(widget.court == null ? 'Opening hours' : 'Hours · ${widget.court!.name}'),
           actions: [
-            if (canEdit && _dirty)
-              TextButton(onPressed: _saving ? null : _save, child: const Text('Save')),
+            if (canEdit && _dirty) TextButton(onPressed: _saving ? null : _save, child: const Text('Save')),
+            if (canEdit && widget.court != null && _customised && !_dirty)
+              TextButton(onPressed: _followVenue, child: const Text('Use venue hours')),
           ],
         ),
         floatingActionButton: canEdit
@@ -133,10 +177,16 @@ class _HoursScreenState extends State<HoursScreen> {
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
               children: [
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
-                  child: Text('Hours apply to all courts. Add several ranges per day for a break (e.g. 6–11 AM and 4–11 PM). '
-                      'A range may end after midnight.'),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    widget.court == null
+                        ? 'Hours apply to all courts unless a court has its own. Add several ranges per day for a break '
+                              '(e.g. 6–11 AM and 4–11 PM). A range may end after midnight.'
+                        : _customised
+                        ? 'This court has its own hours.'
+                        : 'This court follows the venue hours shown below. Change and save them to give it its own.',
+                  ),
                 ),
                 for (var d = 0; d < 7; d++)
                   Card(
@@ -153,15 +203,18 @@ class _HoursScreenState extends State<HoursScreen> {
                               label: Text('${prettyTime(h.open)} – ${prettyTime(h.close)}'),
                               onDeleted: canEdit
                                   ? () => setState(() {
-                                        hours.remove(h);
-                                        _dirty = true;
-                                      })
+                                      hours.remove(h);
+                                      _dirty = true;
+                                    })
                                   : null,
                             ),
                         ],
                       ),
                       trailing: canEdit
-                          ? IconButton(icon: const Icon(Icons.add), onPressed: () => _addRange(days: [d]))
+                          ? IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () => _addRange(days: [d]),
+                            )
                           : null,
                     ),
                   ),
@@ -214,11 +267,22 @@ class _RangeSheetState extends State<_RangeSheet> {
             ],
           ),
           const SizedBox(height: 16),
-          Row(children: [
-            Expanded(child: TimeDropdown(label: 'Opens', value: _open, allowMidnightEnd: false, onChanged: (v) => setState(() => _open = v))),
-            const SizedBox(width: 12),
-            Expanded(child: TimeDropdown(label: 'Closes', value: _close, onChanged: (v) => setState(() => _close = v))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: TimeDropdown(
+                  label: 'Opens',
+                  value: _open,
+                  allowMidnightEnd: false,
+                  onChanged: (v) => setState(() => _open = v),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TimeDropdown(label: 'Closes', value: _close, onChanged: (v) => setState(() => _close = v)),
+              ),
+            ],
+          ),
           if (_close.compareTo(_open) <= 0 && _close != '24:00')
             const Padding(padding: EdgeInsets.only(top: 8), child: Text('Closes the next day (after midnight).')),
           const SizedBox(height: 20),

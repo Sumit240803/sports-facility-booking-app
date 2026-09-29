@@ -5,6 +5,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import 'hours_screen.dart';
 import 'pricing_screen.dart';
 
 class CourtsScreen extends StatefulWidget {
@@ -29,7 +30,9 @@ class _CourtsScreenState extends State<CourtsScreen> {
   Future<void> _edit([Court? court]) async {
     final saved = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => CourtFormScreen(venue: widget.venue, court: court)),
+      MaterialPageRoute(
+        builder: (_) => CourtFormScreen(venue: widget.venue, court: court),
+      ),
     );
     if (saved == true && mounted) setState(_load);
   }
@@ -72,8 +75,10 @@ class _CourtsScreenState extends State<CourtsScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(c.pricePerHourPaise == null ? 'No price' : '${formatPaise(c.pricePerHourPaise)}/hr',
-                            style: const TextStyle(fontWeight: FontWeight.w700)),
+                        Text(
+                          c.pricePerHourPaise == null ? 'No price' : '${formatPaise(c.pricePerHourPaise)}/hr',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
                         if (!c.isActive) const StatusPill('inactive'),
                       ],
                     ),
@@ -85,10 +90,22 @@ class _CourtsScreenState extends State<CourtsScreen> {
                         TextButton.icon(
                           onPressed: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => PricingScreen(venue: widget.venue, court: c)),
+                            MaterialPageRoute(
+                              builder: (_) => PricingScreen(venue: widget.venue, court: c),
+                            ),
                           ).then((_) => setState(_load)),
                           icon: const Icon(Icons.price_change_outlined),
                           label: const Text('Pricing'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => HoursScreen(venue: widget.venue, court: c),
+                            ),
+                          ),
+                          icon: const Icon(Icons.schedule),
+                          label: const Text('Hours'),
                         ),
                         TextButton.icon(
                           onPressed: () => _edit(c),
@@ -136,9 +153,12 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_sports.isEmpty) {
-      context.api.sports().then((s) {
-        if (mounted) setState(() => _sports = s);
-      }).catchError((_) {});
+      context.api
+          .sports()
+          .then((s) {
+            if (mounted) setState(() => _sports = s);
+          })
+          .catchError((_) {});
     }
   }
 
@@ -234,17 +254,24 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
               ),
             ),
             gap,
-            Row(children: [
-              Expanded(child: TextFormField(controller: _surface, decoration: const InputDecoration(labelText: 'Surface'))),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _capacity,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Max players'),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _surface,
+                    decoration: const InputDecoration(labelText: 'Surface'),
+                  ),
                 ),
-              ),
-            ]),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _capacity,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Max players'),
+                  ),
+                ),
+              ],
+            ),
             SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: const Text('Indoor'),
@@ -266,32 +293,34 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
               }),
             ),
             gap,
-            Row(children: [
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  initialValue: _min,
-                  decoration: const InputDecoration(labelText: 'Min booking'),
-                  items: [for (final m in _durationOptions) DropdownMenuItem(value: m, child: Text('$m min'))],
-                  onChanged: (v) => setState(() {
-                    _min = v!;
-                    if (_max < _min) _max = _min;
-                  }),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    initialValue: _min,
+                    decoration: const InputDecoration(labelText: 'Min booking'),
+                    items: [for (final m in _durationOptions) DropdownMenuItem(value: m, child: Text('$m min'))],
+                    onChanged: (v) => setState(() {
+                      _min = v!;
+                      if (_max < _min) _max = _min;
+                    }),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: DropdownButtonFormField<int>(
-                  key: ValueKey('max-$_min-$_slot'),
-                  initialValue: _max,
-                  decoration: const InputDecoration(labelText: 'Max booking'),
-                  items: [
-                    for (final m in _durationOptions.where((m) => m >= _min))
-                      DropdownMenuItem(value: m, child: Text('$m min')),
-                  ],
-                  onChanged: (v) => setState(() => _max = v!),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: DropdownButtonFormField<int>(
+                    key: ValueKey('max-$_min-$_slot'),
+                    initialValue: _max,
+                    decoration: const InputDecoration(labelText: 'Max booking'),
+                    items: [
+                      for (final m in _durationOptions.where((m) => m >= _min))
+                        DropdownMenuItem(value: m, child: Text('$m min')),
+                    ],
+                    onChanged: (v) => setState(() => _max = v!),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             if (_c != null)
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,

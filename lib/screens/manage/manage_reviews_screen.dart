@@ -26,9 +26,19 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
   void _load() => _page = context.api.manageReviews(widget.venue.id);
 
   Future<void> _reply(Review r) async {
-    final text = await promptText(context, 'Reply to ${r.authorName}', initial: r.ownerReply, action: 'Post reply', maxLines: 4);
+    final text = await promptText(
+      context,
+      'Reply to ${r.authorName}',
+      initial: r.ownerReply,
+      action: 'Post reply',
+      maxLines: 4,
+    );
     if (text == null || !mounted) return;
-    if (await runAction(context, () => context.api.replyToReview(widget.venue.id, r.id, text), success: 'Reply posted')) {
+    if (await runAction(
+      context,
+      () => context.api.replyToReview(widget.venue.id, r.id, text),
+      success: 'Reply posted',
+    )) {
       setState(_load);
     }
   }
@@ -45,7 +55,10 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
         builder: (context, page) => ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            Padding(padding: const EdgeInsets.all(16), child: RatingBreakdown(page: page)),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: RatingBreakdown(page: page),
+            ),
             const Divider(),
             for (final r in page.reviews)
               ReviewTile(

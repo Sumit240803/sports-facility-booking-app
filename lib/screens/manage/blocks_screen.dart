@@ -143,7 +143,13 @@ class _BlockSheetState extends State<_BlockSheet> {
     final nav = Navigator.of(context);
     final ok = await runAction(
       context,
-      () => context.api.addBlock(widget.venue.id, courtId: _courtId, start: _start, end: _end, reason: _reason.text.trim()),
+      () => context.api.addBlock(
+        widget.venue.id,
+        courtId: _courtId,
+        start: _start,
+        end: _end,
+        reason: _reason.text.trim(),
+      ),
       success: 'Blocked',
     );
     if (ok) {
@@ -198,12 +204,12 @@ class _BlockSheetState extends State<_BlockSheet> {
               if (v != null) setState(() => _end = v);
             },
           ),
-          TextField(controller: _reason, decoration: const InputDecoration(labelText: 'Reason (optional)')),
-          const SizedBox(height: 20),
-          FilledButton(
-            onPressed: _saving || !_end.isAfter(_start) ? null : _save,
-            child: const Text('Block'),
+          TextField(
+            controller: _reason,
+            decoration: const InputDecoration(labelText: 'Reason (optional)'),
           ),
+          const SizedBox(height: 20),
+          FilledButton(onPressed: _saving || !_end.isAfter(_start) ? null : _save, child: const Text('Block')),
         ],
       ),
     );

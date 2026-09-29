@@ -26,9 +26,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_allSports.isEmpty) {
-      context.api.sports().then((s) {
-        if (mounted) setState(() => _allSports = s);
-      }).catchError((_) {});
+      context.api
+          .sports()
+          .then((s) {
+            if (mounted) setState(() => _allSports = s);
+          })
+          .catchError((_) {});
     }
   }
 
@@ -118,7 +121,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ? const SizedBox.square(dimension: 22, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Text('Continue'),
               ),
-              TextButton(onPressed: () => context.session.clear(), child: const Text('Sign out')),
+              TextButton(
+                onPressed: () async {
+                  final session = context.session;
+                  await context.push.stop();
+                  await session.clear();
+                },
+                child: const Text('Sign out'),
+              ),
             ],
           ),
         ),

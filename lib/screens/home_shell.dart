@@ -25,7 +25,8 @@ class _HomeShellState extends State<HomeShell> {
     super.didChangeDependencies();
     if (!_started) {
       _started = true;
-      context.profileStore.load();
+      final push = context.push;
+      context.profileStore.load().then((_) => push.start()).catchError((_) {});
     }
   }
 
@@ -53,31 +54,44 @@ class _HomeShellState extends State<HomeShell> {
         final pages = <(NavigationDestination, Widget)>[
           (
             const NavigationDestination(
-                icon: Icon(Icons.explore_outlined), selectedIcon: Icon(Icons.explore), label: 'Explore'),
+              icon: Icon(Icons.explore_outlined),
+              selectedIcon: Icon(Icons.explore),
+              label: 'Explore',
+            ),
             const ExploreScreen(),
           ),
           (
             const NavigationDestination(
-                icon: Icon(Icons.event_note_outlined), selectedIcon: Icon(Icons.event_note), label: 'Bookings'),
+              icon: Icon(Icons.event_note_outlined),
+              selectedIcon: Icon(Icons.event_note),
+              label: 'Bookings',
+            ),
             const BookingsScreen(),
           ),
           if (profile.canOwnVenues)
             (
               const NavigationDestination(
-                  icon: Icon(Icons.store_outlined), selectedIcon: Icon(Icons.store), label: 'Manage'),
+                icon: Icon(Icons.store_outlined),
+                selectedIcon: Icon(Icons.store),
+                label: 'Manage',
+              ),
               const MyVenuesScreen(),
             ),
           if (profile.isAdmin)
             (
               const NavigationDestination(
-                  icon: Icon(Icons.admin_panel_settings_outlined),
-                  selectedIcon: Icon(Icons.admin_panel_settings),
-                  label: 'Admin'),
+                icon: Icon(Icons.admin_panel_settings_outlined),
+                selectedIcon: Icon(Icons.admin_panel_settings),
+                label: 'Admin',
+              ),
               const AdminScreen(),
             ),
           (
             const NavigationDestination(
-                icon: Icon(Icons.person_outline), selectedIcon: Icon(Icons.person), label: 'Profile'),
+              icon: Icon(Icons.person_outline),
+              selectedIcon: Icon(Icons.person),
+              label: 'Profile',
+            ),
             const ProfileScreen(),
           ),
         ];

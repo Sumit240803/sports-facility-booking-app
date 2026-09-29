@@ -1,7 +1,6 @@
 typedef Json = Map<String, dynamic>;
 
-List<T> _list<T>(Object? raw, T Function(Json) f) =>
-    (raw as List? ?? const []).cast<Json>().map(f).toList();
+List<T> _list<T>(Object? raw, T Function(Json) f) => (raw as List? ?? const []).cast<Json>().map(f).toList();
 
 class Profile {
   Profile(this.json);
@@ -14,6 +13,8 @@ class Profile {
   String? get city => json['city'];
   String get role => json['role'] ?? 'player';
   bool get isOnboarded => json['onboarded_at'] != null;
+  bool get notifyEmail => json['notify_email'] ?? true;
+  bool get notifyPush => json['notify_push'] ?? true;
   bool get isAdmin => role == 'admin';
   bool get canOwnVenues => role == 'venue_owner' || role == 'admin';
   List<String> get preferredSports => (json['preferred_sports'] as List? ?? const []).cast<String>();
@@ -27,16 +28,16 @@ class CatalogItem {
 
 class VenueSearchResult {
   VenueSearchResult(Json j)
-      : id = j['id'],
-        slug = j['slug'],
-        name = j['name'],
-        locality = j['locality'],
-        city = j['city'] ?? '',
-        sports = (j['sports'] as List? ?? const []).cast<String>(),
-        coverUrl = j['cover_url'],
-        distanceKm = (j['distance_km'] as num?)?.toDouble(),
-        ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
-        ratingCount = j['rating_count'] ?? 0;
+    : id = j['id'],
+      slug = j['slug'],
+      name = j['name'],
+      locality = j['locality'],
+      city = j['city'] ?? '',
+      sports = (j['sports'] as List? ?? const []).cast<String>(),
+      coverUrl = j['cover_url'],
+      distanceKm = (j['distance_km'] as num?)?.toDouble(),
+      ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
+      ratingCount = j['rating_count'] ?? 0;
   final String id, slug, name, city;
   final String? locality, coverUrl;
   final List<String> sports;
@@ -46,17 +47,17 @@ class VenueSearchResult {
 
 class Court {
   Court(Json j)
-      : id = j['id'],
-        name = j['name'],
-        sportId = j['sport_id'],
-        isIndoor = j['is_indoor'] ?? false,
-        surface = j['surface'],
-        capacity = j['capacity'],
-        baseSlotMinutes = j['base_slot_minutes'] ?? 60,
-        minDurationMinutes = j['min_duration_minutes'] ?? 60,
-        maxDurationMinutes = j['max_duration_minutes'] ?? 120,
-        isActive = j['is_active'] ?? true,
-        pricePerHourPaise = j['price_per_hour_paise'];
+    : id = j['id'],
+      name = j['name'],
+      sportId = j['sport_id'],
+      isIndoor = j['is_indoor'] ?? false,
+      surface = j['surface'],
+      capacity = j['capacity'],
+      baseSlotMinutes = j['base_slot_minutes'] ?? 60,
+      minDurationMinutes = j['min_duration_minutes'] ?? 60,
+      maxDurationMinutes = j['max_duration_minutes'] ?? 120,
+      isActive = j['is_active'] ?? true,
+      pricePerHourPaise = j['price_per_hour_paise'];
   final String id, name, sportId;
   final bool isIndoor, isActive;
   final String? surface;
@@ -72,19 +73,19 @@ class Photo {
 
 class PublicVenue {
   PublicVenue(Json j)
-      : id = j['id'],
-        slug = j['slug'],
-        name = j['name'],
-        description = j['description'],
-        phone = j['phone'],
-        address = [j['address_line'], j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
-        amenities = (j['amenities'] as List? ?? const []).cast<String>(),
-        sports = (j['sports'] as List? ?? const []).cast<String>(),
-        rules = j['rules'],
-        courts = _list(j['courts'], Court.new),
-        photos = _list(j['photos'], Photo.new),
-        ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
-        ratingCount = j['rating_count'] ?? 0;
+    : id = j['id'],
+      slug = j['slug'],
+      name = j['name'],
+      description = j['description'],
+      phone = j['phone'],
+      address = [j['address_line'], j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
+      amenities = (j['amenities'] as List? ?? const []).cast<String>(),
+      sports = (j['sports'] as List? ?? const []).cast<String>(),
+      rules = j['rules'],
+      courts = _list(j['courts'], Court.new),
+      photos = _list(j['photos'], Photo.new),
+      ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
+      ratingCount = j['rating_count'] ?? 0;
   final String id, slug, name, address;
   final String? description, phone, rules;
   final List<String> amenities, sports;
@@ -96,12 +97,12 @@ class PublicVenue {
 
 class Slot {
   Slot(Json j)
-      : start = j['start'],
-        end = j['end'],
-        pricePaise = j['price_paise'] ?? 0,
-        onlinePricePaise = j['online_price_paise'] ?? 0,
-        payAtVenue = j['pay_at_venue'] ?? false,
-        status = j['status'] ?? 'closed';
+    : start = j['start'],
+      end = j['end'],
+      pricePaise = j['price_paise'] ?? 0,
+      onlinePricePaise = j['online_price_paise'] ?? 0,
+      payAtVenue = j['pay_at_venue'] ?? false,
+      status = j['status'] ?? 'closed';
   final String start, end, status;
   final int pricePaise, onlinePricePaise;
   final bool payAtVenue;
@@ -110,13 +111,13 @@ class Slot {
 
 class CourtAvailability {
   CourtAvailability(Json j)
-      : id = j['id'],
-        name = j['name'],
-        sportId = j['sport_id'],
-        baseSlotMinutes = j['base_slot_minutes'] ?? 60,
-        minDurationMinutes = j['min_duration_minutes'] ?? 60,
-        maxDurationMinutes = j['max_duration_minutes'] ?? 60,
-        slots = _list(j['slots'], Slot.new);
+    : id = j['id'],
+      name = j['name'],
+      sportId = j['sport_id'],
+      baseSlotMinutes = j['base_slot_minutes'] ?? 60,
+      minDurationMinutes = j['min_duration_minutes'] ?? 60,
+      maxDurationMinutes = j['max_duration_minutes'] ?? 60,
+      slots = _list(j['slots'], Slot.new);
   final String id, name, sportId;
   final int baseSlotMinutes, minDurationMinutes, maxDurationMinutes;
   final List<Slot> slots;
@@ -124,9 +125,9 @@ class CourtAvailability {
 
 class Availability {
   Availability(Json j)
-      : date = j['date'],
-        onlineDiscountPercent = j['online_discount_percent'] ?? 0,
-        courts = _list(j['courts'], CourtAvailability.new);
+    : date = j['date'],
+      onlineDiscountPercent = j['online_discount_percent'] ?? 0,
+      courts = _list(j['courts'], CourtAvailability.new);
   final String date;
   final int onlineDiscountPercent;
   final List<CourtAvailability> courts;
@@ -134,37 +135,40 @@ class Availability {
 
 class Quote {
   Quote(Json j)
-      : subtotalPaise = j['subtotal_paise'] ?? 0,
-        discountPaise = j['discount_paise'] ?? 0,
-        discountPercent = j['discount_percent'] ?? 0,
-        totalPaise = j['total_paise'] ?? 0,
-        durationMinutes = j['duration_minutes'] ?? 0;
+    : subtotalPaise = j['subtotal_paise'] ?? 0,
+      discountPaise = j['discount_paise'] ?? 0,
+      discountPercent = j['discount_percent'] ?? 0,
+      totalPaise = j['total_paise'] ?? 0,
+      durationMinutes = j['duration_minutes'] ?? 0;
   final int subtotalPaise, discountPaise, discountPercent, totalPaise, durationMinutes;
 }
 
 class Booking {
   Booking(Json j)
-      : id = j['id'],
-        reference = j['reference'] ?? '',
-        venueId = j['venue_id'] ?? (j['venue'] as Json?)?['id'] ?? '',
-        startsAt = j['starts_at'],
-        endsAt = j['ends_at'],
-        durationMinutes = j['duration_minutes'] ?? 0,
-        status = j['status'] ?? '',
-        paymentMethod = j['payment_method'] ?? '',
-        paymentStatus = j['payment_status'] ?? '',
-        totalPaise = j['total_paise'] ?? 0,
-        courtName = (j['court'] as Json?)?['name'],
-        sportId = (j['court'] as Json?)?['sport_id'],
-        venueName = (j['venue'] as Json?)?['name'],
-        venueCity = (j['venue'] as Json?)?['city'],
-        venuePhone = (j['venue'] as Json?)?['phone'],
-        cancellation = j['cancellation'] as Json?;
+    : id = j['id'],
+      reference = j['reference'] ?? '',
+      venueId = j['venue_id'] ?? (j['venue'] as Json?)?['id'] ?? '',
+      startsAt = j['starts_at'],
+      endsAt = j['ends_at'],
+      durationMinutes = j['duration_minutes'] ?? 0,
+      status = j['status'] ?? '',
+      paymentMethod = j['payment_method'] ?? '',
+      paymentStatus = j['payment_status'] ?? '',
+      totalPaise = j['total_paise'] ?? 0,
+      courtName = (j['court'] as Json?)?['name'],
+      sportId = (j['court'] as Json?)?['sport_id'],
+      venueName = (j['venue'] as Json?)?['name'],
+      venueCity = (j['venue'] as Json?)?['city'],
+      venuePhone = (j['venue'] as Json?)?['phone'],
+      expiresAt = j['expires_at'],
+      cancellation = j['cancellation'] as Json?;
   final String id, reference, venueId, startsAt, endsAt, status, paymentMethod, paymentStatus;
   final int durationMinutes, totalPaise;
   final String? courtName, sportId, venueName, venueCity, venuePhone;
+  final String? expiresAt;
   final Json? cancellation;
 
+  bool get awaitingPayment => status == 'pending_payment';
   bool get isCancellable => status == 'confirmed' || status == 'pending_payment';
 }
 
@@ -173,15 +177,15 @@ class Booking {
 
 class Review {
   Review(Json j)
-      : id = j['id'],
-        venueId = j['venue_id'],
-        rating = j['rating'] ?? 0,
-        comment = j['comment'],
-        ownerReply = j['owner_reply'],
-        authorName = (j['author'] as Json?)?['name'] ?? 'Player',
-        authorAvatar = (j['author'] as Json?)?['avatar_url'],
-        isHidden = j['status'] == 'hidden',
-        createdAt = j['created_at'];
+    : id = j['id'],
+      venueId = j['venue_id'],
+      rating = j['rating'] ?? 0,
+      comment = j['comment'],
+      ownerReply = j['owner_reply'],
+      authorName = (j['author'] as Json?)?['name'] ?? 'Player',
+      authorAvatar = (j['author'] as Json?)?['avatar_url'],
+      isHidden = j['status'] == 'hidden',
+      createdAt = j['created_at'];
   final String id, venueId, authorName, createdAt;
   final int rating;
   final String? comment, ownerReply, authorAvatar;
@@ -190,9 +194,11 @@ class Review {
 
 class ReviewPage {
   ReviewPage(Json j)
-      : reviews = _list(j['reviews'], Review.new),
-        total = j['total'] ?? 0,
-        breakdown = {for (final e in ((j['breakdown'] as Json?) ?? const {}).entries) int.parse(e.key): (e.value as num).toInt()};
+    : reviews = _list(j['reviews'], Review.new),
+      total = j['total'] ?? 0,
+      breakdown = {
+        for (final e in ((j['breakdown'] as Json?) ?? const {}).entries) int.parse(e.key): (e.value as num).toInt(),
+      };
   final List<Review> reviews;
   final int total;
   final Map<int, int> breakdown;
@@ -200,14 +206,14 @@ class ReviewPage {
 
 class Favourite {
   Favourite(Json j)
-      : id = j['id'],
-        slug = j['slug'],
-        name = j['name'],
-        place = [j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
-        coverUrl = j['cover_url'],
-        ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
-        ratingCount = j['rating_count'] ?? 0,
-        available = j['available'] ?? true;
+    : id = j['id'],
+      slug = j['slug'],
+      name = j['name'],
+      place = [j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
+      coverUrl = j['cover_url'],
+      ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
+      ratingCount = j['rating_count'] ?? 0,
+      available = j['available'] ?? true;
   final String id, slug, name, place;
   final String? coverUrl;
   final double? ratingAvg;
@@ -217,13 +223,13 @@ class Favourite {
 
 class AppNotification {
   AppNotification(Json j)
-      : id = j['id'],
-        type = j['type'] ?? '',
-        title = j['title'] ?? '',
-        body = j['body'] ?? '',
-        data = (j['data'] as Json?) ?? const {},
-        readAt = j['read_at'],
-        createdAt = j['created_at'];
+    : id = j['id'],
+      type = j['type'] ?? '',
+      title = j['title'] ?? '',
+      body = j['body'] ?? '',
+      data = (j['data'] as Json?) ?? const {},
+      readAt = j['read_at'],
+      createdAt = j['created_at'];
   final String id, type, title, body, createdAt;
   final Json data;
   final String? readAt;
@@ -232,13 +238,13 @@ class AppNotification {
 
 class Reminder {
   Reminder(Json j)
-      : id = j['id'],
-        slotStart = j['slot_start'],
-        slotDate = j['slot_date'],
-        notifyAt = j['notify_at'],
-        status = j['status'] ?? 'pending',
-        courtName = (j['court'] as Json?)?['name'],
-        venueName = (j['venue'] as Json?)?['name'];
+    : id = j['id'],
+      slotStart = j['slot_start'],
+      slotDate = j['slot_date'],
+      notifyAt = j['notify_at'],
+      status = j['status'] ?? 'pending',
+      courtName = (j['court'] as Json?)?['name'],
+      venueName = (j['venue'] as Json?)?['name'];
   final String id, slotStart, slotDate, notifyAt, status;
   final String? courtName, venueName;
 }
@@ -248,13 +254,13 @@ class Reminder {
 
 class VenueSummary {
   VenueSummary(Json j, {this.role})
-      : id = j['id'],
-        name = j['name'],
-        slug = j['slug'],
-        place = [j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
-        status = j['status'] ?? 'draft',
-        statusReason = j['status_reason'],
-        coverUrl = j['cover_url'];
+    : id = j['id'],
+      name = j['name'],
+      slug = j['slug'],
+      place = [j['locality'], j['city']].whereType<String>().where((s) => s.isNotEmpty).join(', '),
+      status = j['status'] ?? 'draft',
+      statusReason = j['status_reason'],
+      coverUrl = j['cover_url'];
   final String id, name, slug, place, status;
   final String? statusReason, coverUrl;
 
@@ -291,43 +297,43 @@ class HoursRange {
 class PriceRule {
   PriceRule({this.days, this.date, required this.start, required this.end, required this.pricePerHourPaise});
   PriceRule.fromJson(Json j)
-      : days = (j['days'] as List?)?.cast<int>(),
-        date = j['date'],
-        start = j['start'],
-        end = j['end'],
-        pricePerHourPaise = j['price_per_hour_paise'];
+    : days = (j['days'] as List?)?.cast<int>(),
+      date = j['date'],
+      start = j['start'],
+      end = j['end'],
+      pricePerHourPaise = j['price_per_hour_paise'];
   final List<int>? days;
   final String? date;
   final String start, end;
   final int pricePerHourPaise;
   Json toJson() => {
-        if (days != null) 'days': days,
-        if (date != null) 'date': date,
-        'start': start,
-        'end': end,
-        'price_per_hour_paise': pricePerHourPaise,
-      };
+    if (days != null) 'days': days,
+    if (date != null) 'date': date,
+    'start': start,
+    'end': end,
+    'price_per_hour_paise': pricePerHourPaise,
+  };
 }
 
 class Block {
   Block(Json j)
-      : id = j['id'],
-        courtId = j['court_id'],
-        startsAt = j['starts_at'],
-        endsAt = j['ends_at'],
-        reason = j['reason'];
+    : id = j['id'],
+      courtId = j['court_id'],
+      startsAt = j['starts_at'],
+      endsAt = j['ends_at'],
+      reason = j['reason'];
   final String id, startsAt, endsAt;
   final String? courtId, reason;
 }
 
 class VenueBooking {
   VenueBooking(Json j)
-      : booking = Booking(j),
-        customerName = (j['customer'] as Json?)?['full_name'] ?? j['customer_name'],
-        customerPhone = (j['customer'] as Json?)?['phone'] ?? j['customer_phone'],
-        collectedPaise = j['collected_paise'],
-        notes = j['notes'],
-        events = (j['events'] as List? ?? const []).cast<Json>();
+    : booking = Booking(j),
+      customerName = (j['customer'] as Json?)?['full_name'] ?? j['customer_name'],
+      customerPhone = (j['customer'] as Json?)?['phone'] ?? j['customer_phone'],
+      collectedPaise = j['collected_paise'],
+      notes = j['notes'],
+      events = (j['events'] as List? ?? const []).cast<Json>();
   final Booking booking;
   final String? customerName, customerPhone, notes;
   final int? collectedPaise;
@@ -336,10 +342,10 @@ class VenueBooking {
 
 class StaffMember {
   StaffMember(Json j)
-      : userId = (j['user'] as Json)['id'],
-        name = (j['user'] as Json)['full_name'] ?? (j['user'] as Json)['email'] ?? 'Staff',
-        email = (j['user'] as Json)['email'],
-        role = j['role'];
+    : userId = (j['user'] as Json)['id'],
+      name = (j['user'] as Json)['full_name'] ?? (j['user'] as Json)['email'] ?? 'Staff',
+      email = (j['user'] as Json)['email'],
+      role = j['role'];
   final String userId, name, role;
   final String? email;
 }
@@ -351,15 +357,154 @@ class StaffInvite {
 
 class OwnerApplication {
   OwnerApplication(Json j)
-      : userId = j['user_id'],
-        businessName = j['business_name'] ?? '',
-        businessPhone = j['business_phone'] ?? '',
-        gstin = j['gstin'],
-        status = j['verification_status'] ?? 'pending',
-        rejectionReason = j['rejection_reason'],
-        applicantName = (j['user'] as Json?)?['full_name'],
-        applicantEmail = (j['user'] as Json?)?['email'],
-        createdAt = j['created_at'];
+    : userId = j['user_id'],
+      businessName = j['business_name'] ?? '',
+      businessPhone = j['business_phone'] ?? '',
+      gstin = j['gstin'],
+      status = j['verification_status'] ?? 'pending',
+      rejectionReason = j['rejection_reason'],
+      applicantName = (j['user'] as Json?)?['full_name'],
+      applicantEmail = (j['user'] as Json?)?['email'],
+      createdAt = j['created_at'];
   final String userId, businessName, businessPhone, status, createdAt;
   final String? gstin, rejectionReason, applicantName, applicantEmail;
+}
+
+// ---------------------------------------------------------------------------
+// Payments & earnings
+
+class PaymentOrder {
+  PaymentOrder(Json j)
+    : keyId = j['key_id'],
+      orderId = j['order_id'],
+      amountPaise = j['amount_paise'],
+      currency = j['currency'] ?? 'INR',
+      description = j['description'] ?? '',
+      timeoutSeconds = j['checkout_timeout_seconds'] ?? 600,
+      prefill = (j['prefill'] as Json?) ?? const {};
+  final String keyId, orderId, currency, description;
+  final int amountPaise, timeoutSeconds;
+  final Json prefill;
+}
+
+class LedgerEntry {
+  LedgerEntry(Json j)
+    : type = j['entry_type'] ?? '',
+      amountPaise = j['amount_paise'] ?? 0,
+      description = j['description'] ?? '',
+      createdAt = j['created_at'];
+  final String type, description, createdAt;
+  final int amountPaise;
+}
+
+class Payout {
+  Payout(Json j)
+    : amountPaise = j['amount_paise'] ?? 0,
+      status = j['status'] ?? '',
+      mode = j['mode'] ?? 'manual',
+      reference = j['reference'],
+      failedReason = j['failed_reason'],
+      createdAt = j['created_at'];
+  final int amountPaise;
+  final String status, mode, createdAt;
+  final String? reference, failedReason;
+}
+
+class Earnings {
+  Earnings(Json j)
+    : balancePaise = j['balance_paise'] ?? 0,
+      commissionPercent = j['commission_percent'] ?? 10,
+      payoutMode = j['payout_mode'] ?? 'manual',
+      ledger = _list(j['ledger'], LedgerEntry.new),
+      payouts = _list(j['recent_payouts'], Payout.new);
+  final int balancePaise, commissionPercent;
+  final String payoutMode;
+  final List<LedgerEntry> ledger;
+  final List<Payout> payouts;
+}
+
+class PayoutSettings {
+  PayoutSettings(Json j)
+    : mode = j['mode'] ?? 'manual',
+      linkedAccount = j['razorpay_account_id'],
+      holder = j['account_holder_name'],
+      accountNumber = j['bank_account_number'],
+      ifsc = j['bank_ifsc'],
+      upi = j['upi_id'];
+  final String mode;
+  final String? linkedAccount, holder, accountNumber, ifsc, upi;
+}
+
+// ---------------------------------------------------------------------------
+// Admin
+
+class AdminUser {
+  AdminUser(Json j)
+    : id = j['id'],
+      email = j['email'],
+      name = j['full_name'],
+      avatarUrl = j['avatar_url'],
+      phone = j['phone'],
+      city = j['city'],
+      role = j['role'] ?? 'player',
+      status = j['status'] ?? 'active',
+      lastLoginAt = j['last_login_at'],
+      createdAt = j['created_at'];
+  final String id, role, status, createdAt;
+  final String? email, name, avatarUrl, phone, city, lastLoginAt;
+  String get display => name ?? email ?? 'User';
+}
+
+class AdminReview {
+  AdminReview(Json j)
+    : review = Review(j),
+      hiddenReason = j['hidden_reason'],
+      venueName = (j['venue'] as Json?)?['name'] ?? 'Venue';
+  final Review review;
+  final String? hiddenReason;
+  final String venueName;
+}
+
+class VenueBalance {
+  VenueBalance(Json j)
+    : venueId = j['venue_id'],
+      venueName = j['venue_name'] ?? 'Venue',
+      city = j['city'],
+      payoutMode = j['payout_mode'] ?? 'manual',
+      balancePaise = j['balance_paise'] ?? 0;
+  final String venueId, venueName, payoutMode;
+  final String? city;
+  final int balancePaise;
+}
+
+class AdminPayout {
+  AdminPayout(Json j) : id = j['id'], venueId = j['venue_id'], payout = Payout(j);
+  final String id, venueId;
+  final Payout payout;
+}
+
+class Refund {
+  Refund(Json j)
+    : id = j['id'],
+      amountPaise = j['amount_paise'] ?? 0,
+      reason = j['reason'],
+      status = j['status'] ?? '',
+      attempts = j['attempts'] ?? 0,
+      lastError = j['last_error'],
+      reference = (j['booking'] as Json?)?['reference'],
+      createdAt = j['created_at'];
+  final String id, status, createdAt;
+  final int amountPaise, attempts;
+  final String? reason, lastError, reference;
+}
+
+class AdminCatalogItem {
+  AdminCatalogItem(Json j)
+    : id = j['id'],
+      name = j['name'],
+      isActive = j['is_active'] ?? true,
+      sortOrder = j['sort_order'] ?? 0;
+  final String id, name;
+  final bool isActive;
+  final int sortOrder;
 }

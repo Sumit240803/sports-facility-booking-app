@@ -6,6 +6,8 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import 'qr_scan_screen.dart';
+import '../../widgets/skeleton.dart';
 
 /// A venue's bookings for one day, with walk-ins and check-in.
 class FrontDeskScreen extends StatefulWidget {
@@ -29,9 +31,9 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
   void _load() => _bookings = context.api.venueBookings(widget.venue.id, isoDate(_date));
 
   void _shift(int days) => setState(() {
-        _date = _date.add(Duration(days: days));
-        _load();
-      });
+    _date = _date.add(Duration(days: days));
+    _load();
+  });
 
   Future<void> _open(String bookingId) async {
     await showModalBottomSheet(
@@ -43,9 +45,28 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
     if (mounted) setState(_load);
   }
 
+  /// Status groups for the filter chips.
+  static const _groups = <(String, String, Set<String>?)>[
+    ('all', 'All', null),
+    ('arriving', 'To arrive', {'confirmed', 'pending_payment'}),
+    ('in', 'Checked in', {'checked_in'}),
+    ('done', 'Completed', {'completed'}),
+    ('off', 'Cancelled / no-show', {'cancelled', 'expired', 'no_show'}),
+  ];
+  String _group = 'all';
+
+  Future<void> _scan() async {
+    final ref = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => const QrScanScreen()));
+    if (ref != null && mounted) await _find(ref);
+  }
+
   Future<void> _lookup() async {
     final ref = await promptText(context, 'Find booking', label: 'Reference, e.g. EP-7K3M9Q', action: 'Find');
     if (ref == null || !mounted) return;
+    await _find(ref);
+  }
+
+  Future<void> _find(String ref) async {
     try {
       final b = await context.api.venueBookingByReference(widget.venue.id, ref.toUpperCase());
       if (mounted) _open(b.booking.id);
@@ -57,7 +78,9 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
   Future<void> _walkIn() async {
     final booked = await Navigator.push<bool>(
       context,
-      MaterialPageRoute(builder: (_) => WalkInScreen(venue: widget.venue, date: _date)),
+      MaterialPageRoute(
+        builder: (_) => WalkInScreen(venue: widget.venue, date: _date),
+      ),
     );
     if (booked == true && mounted) setState(_load);
   }
@@ -68,7 +91,10 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Front desk'),
-        actions: [IconButton(tooltip: 'Find by reference', onPressed: _lookup, icon: const Icon(Icons.qr_code_scanner))],
+        actions: [
+          IconButton(tooltip: 'Type reference', onPressed: _lookup, icon: const Icon(Icons.keyboard_outlined)),
+          IconButton(tooltip: 'Scan QR', onPressed: _scan, icon: const Icon(Icons.qr_code_scanner)),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _walkIn,
@@ -99,7 +125,9 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
                       }
                     },
                     child: Text(
-                      isToday ? 'Today, ${DateFormat('d MMM').format(_date)}' : DateFormat('EEE, d MMM yyyy').format(_date),
+                      isToday
+                          ? 'Today, ${DateFormat('d MMM').format(_date)}'
+                          : DateFormat('EEE, d MMM yyyy').format(_date),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
@@ -116,38 +144,68 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
               },
               child: AsyncView<List<VenueBooking>>(
                 future: _bookings,
+                loading: const SkeletonList(),
                 onRetry: () => setState(_load),
                 isEmpty: (b) => b.isEmpty,
-                empty: ListView(children: const [
-                  SizedBox(height: 60),
-                  MessageView(icon: Icons.event_available, title: 'No bookings this day'),
-                ]),
-                builder: (context, list) => ListView.separated(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
-                  itemCount: list.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: 8),
-                  itemBuilder: (context, i) {
-                    final vb = list[i];
-                    final b = vb.booking;
-                    return Card(
-                      child: ListTile(
-                        onTap: () => _open(b.id),
-                        leading: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(formatTime(b.startsAt), style: const TextStyle(fontWeight: FontWeight.w700)),
-                            Text('${b.durationMinutes}m', style: Theme.of(context).textTheme.labelSmall),
-                          ],
-                        ),
-                        title: Text(vb.customerName ?? 'Player'),
-                        subtitle: Text('${b.courtName ?? ''} · ${b.reference}\n'
-                            '${formatPaise(b.totalPaise)} · ${titleCase(b.paymentMethod)} (${titleCase(b.paymentStatus)})'),
-                        isThreeLine: true,
-                        trailing: StatusPill(b.status),
-                      ),
-                    );
-                  },
+                empty: ListView(
+                  children: const [
+                    SizedBox(height: 60),
+                    MessageView(icon: Icons.event_available, title: 'No bookings this day'),
+                  ],
                 ),
+                builder: (context, all) {
+                  int count(Set<String>? s) =>
+                      s == null ? all.length : all.where((b) => s.contains(b.booking.status)).length;
+                  final statuses = _groups.firstWhere((g) => g.$1 == _group).$3;
+                  final list = statuses == null ? all : all.where((b) => statuses.contains(b.booking.status)).toList();
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 96),
+                    itemCount: list.length + 1,
+                    separatorBuilder: (_, _) => const SizedBox(height: 8),
+                    itemBuilder: (context, i) {
+                      if (i == 0) {
+                        return SizedBox(
+                          height: 40,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              for (final g in _groups)
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: ChoiceChip(
+                                    label: Text('${g.$2} (${count(g.$3)})'),
+                                    selected: _group == g.$1,
+                                    onSelected: (_) => setState(() => _group = g.$1),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        );
+                      }
+                      final vb = list[i - 1];
+                      final b = vb.booking;
+                      return Card(
+                        child: ListTile(
+                          onTap: () => _open(b.id),
+                          leading: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(formatTime(b.startsAt), style: const TextStyle(fontWeight: FontWeight.w700)),
+                              Text('${b.durationMinutes}m', style: Theme.of(context).textTheme.labelSmall),
+                            ],
+                          ),
+                          title: Text(vb.customerName ?? 'Player'),
+                          subtitle: Text(
+                            '${b.courtName ?? ''} · ${b.reference}\n'
+                            '${formatPaise(b.totalPaise)} · ${titleCase(b.paymentMethod)} (${titleCase(b.paymentStatus)})',
+                          ),
+                          isThreeLine: true,
+                          trailing: StatusPill(b.status),
+                        ),
+                      );
+                    },
+                  );
+                },
               ),
             ),
           ),
@@ -217,10 +275,18 @@ class _BookingSheetState extends State<_BookingSheet> {
   }
 
   Future<void> _cancel(VenueBooking vb) async {
-    final reason = await promptText(context, 'Cancel booking', label: 'Reason (shown to the player)', action: 'Cancel booking');
+    final reason = await promptText(
+      context,
+      'Cancel booking',
+      label: 'Reason (shown to the player)',
+      action: 'Cancel booking',
+    );
     if (reason == null || !mounted) return;
     final api = context.api;
-    await _do(() => api.venueCancelBooking(widget.venue.id, vb.booking.id, reason), 'Booking cancelled, player refunded');
+    await _do(
+      () => api.venueCancelBooking(widget.venue.id, vb.booking.id, reason),
+      'Booking cancelled, player refunded',
+    );
   }
 
   @override
@@ -237,13 +303,18 @@ class _BookingSheetState extends State<_BookingSheet> {
           return ListView(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
             children: [
-              Row(children: [
-                Expanded(
-                  child: Text(b.reference,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1)),
-                ),
-                StatusPill(b.status),
-              ]),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      b.reference,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
+                    ),
+                  ),
+                  StatusPill(b.status),
+                ],
+              ),
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -261,14 +332,20 @@ class _BookingSheetState extends State<_BookingSheet> {
                 contentPadding: EdgeInsets.zero,
                 leading: const Icon(Icons.payments_outlined),
                 title: Text('${formatPaise(b.totalPaise)} · ${titleCase(b.paymentMethod)}'),
-                subtitle: Text('${titleCase(b.paymentStatus)}'
-                    '${vb.collectedPaise != null ? ' · collected ${formatPaise(vb.collectedPaise)}' : ''}'),
+                subtitle: Text(
+                  '${titleCase(b.paymentStatus)}'
+                  '${vb.collectedPaise != null ? ' · collected ${formatPaise(vb.collectedPaise)}' : ''}',
+                ),
               ),
               if (vb.notes?.isNotEmpty ?? false)
                 ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notes), title: Text(vb.notes!)),
               const SizedBox(height: 8),
               if (b.status == 'confirmed')
-                FilledButton.icon(onPressed: () => _checkIn(vb), icon: const Icon(Icons.login), label: const Text('Check in')),
+                FilledButton.icon(
+                  onPressed: () => _checkIn(vb),
+                  icon: const Icon(Icons.login),
+                  label: const Text('Check in'),
+                ),
               if (active && b.paymentStatus == 'due') ...[
                 const SizedBox(height: 8),
                 FilledButton.tonalIcon(
@@ -309,10 +386,12 @@ class _BookingSheetState extends State<_BookingSheet> {
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.circle, size: 10),
                     title: Text(titleCase('${e['to_status']}')),
-                    subtitle: Text([
-                      DateFormat('d MMM, h:mm a').format(DateTime.parse(e['created_at']).toLocal()),
-                      if (e['note'] != null) e['note'],
-                    ].join(' · ')),
+                    subtitle: Text(
+                      [
+                        DateFormat('d MMM, h:mm a').format(DateTime.parse(e['created_at']).toLocal()),
+                        if (e['note'] != null) e['note'],
+                      ].join(' · '),
+                    ),
                   ),
               ],
             ],

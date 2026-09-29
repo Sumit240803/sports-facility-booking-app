@@ -50,41 +50,59 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_allAmenities.isEmpty) {
-      context.api.amenities().then((a) {
-        if (mounted) setState(() => _allAmenities = a);
-      }).catchError((_) {});
+      context.api
+          .amenities()
+          .then((a) {
+            if (mounted) setState(() => _allAmenities = a);
+          })
+          .catchError((_) {});
     }
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _description, _phone, _email, _address, _locality, _city, _state, _pincode, _lat, _lng, _rules]) {
+    for (final c in [
+      _name,
+      _description,
+      _phone,
+      _email,
+      _address,
+      _locality,
+      _city,
+      _state,
+      _pincode,
+      _lat,
+      _lng,
+      _rules,
+    ]) {
       c.dispose();
     }
     super.dispose();
   }
 
   Json _body() => {
-        'name': _name.text.trim(),
-        'description': _description.text.trim(),
-        'phone': _phone.text.replaceAll(' ', ''),
-        'email': _email.text.trim(),
-        'address_line': _address.text.trim(),
-        'locality': _locality.text.trim(),
-        'city': _city.text.trim(),
-        'state': _state.text.trim(),
-        'pincode': _pincode.text.trim(),
-        'lat': double.tryParse(_lat.text.trim()),
-        'lng': double.tryParse(_lng.text.trim()),
-        'rules': _rules.text.trim(),
-        'amenities': _amenities.toList(),
-        'booking_window_days': _bookingWindow,
-        'listing_window_days': _listingWindow,
-        'min_notice_minutes': _minNotice,
-        'pay_at_venue_enabled': _payAtVenue,
-        'pay_at_venue_window_minutes': _payAtVenueWindow,
-        'cancellation_policy': [for (final p in _policy) {'hours_before': p.hours, 'refund_percent': p.percent}],
-      };
+    'name': _name.text.trim(),
+    'description': _description.text.trim(),
+    'phone': _phone.text.replaceAll(' ', ''),
+    'email': _email.text.trim(),
+    'address_line': _address.text.trim(),
+    'locality': _locality.text.trim(),
+    'city': _city.text.trim(),
+    'state': _state.text.trim(),
+    'pincode': _pincode.text.trim(),
+    'lat': double.tryParse(_lat.text.trim()),
+    'lng': double.tryParse(_lng.text.trim()),
+    'rules': _rules.text.trim(),
+    'amenities': _amenities.toList(),
+    'booking_window_days': _bookingWindow,
+    'listing_window_days': _listingWindow,
+    'min_notice_minutes': _minNotice,
+    'pay_at_venue_enabled': _payAtVenue,
+    'pay_at_venue_window_minutes': _payAtVenueWindow,
+    'cancellation_policy': [
+      for (final p in _policy) {'hours_before': p.hours, 'refund_percent': p.percent},
+    ],
+  };
 
   Future<void> _save() async {
     if (!_form.currentState!.validate()) return;
@@ -109,7 +127,12 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
   Future<void> _addPolicyRow() async {
     final hours = await promptText(context, 'Hours before start', keyboardType: TextInputType.number, action: 'Next');
     if (hours == null || !mounted) return;
-    final percent = await promptText(context, 'Refund percent (0–100)', keyboardType: TextInputType.number, action: 'Add');
+    final percent = await promptText(
+      context,
+      'Refund percent (0–100)',
+      keyboardType: TextInputType.number,
+      action: 'Add',
+    );
     final h = int.tryParse(hours), p = int.tryParse(percent ?? '');
     if (h == null || p == null || h < 0 || h > 168 || p < 0 || p > 100) {
       if (mounted && percent != null) showMessage(context, 'Hours must be 0–168 and percent 0–100');
@@ -131,7 +154,11 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             const SectionTitle('Basics'),
-            TextFormField(controller: _name, validator: required, decoration: const InputDecoration(labelText: 'Venue name *')),
+            TextFormField(
+              controller: _name,
+              validator: required,
+              decoration: const InputDecoration(labelText: 'Venue name *'),
+            ),
             gap,
             TextFormField(
               controller: _description,
@@ -142,7 +169,8 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
             TextFormField(
               controller: _phone,
               keyboardType: TextInputType.phone,
-              validator: (v) => (v ?? '').trim().isEmpty || RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(v!.replaceAll(' ', ''))
+              validator: (v) =>
+                  (v ?? '').trim().isEmpty || RegExp(r'^\+[1-9]\d{7,14}$').hasMatch(v!.replaceAll(' ', ''))
                   ? null
                   : 'Use international format, e.g. +919876543210',
               decoration: const InputDecoration(labelText: 'Phone (required to publish)'),
@@ -155,15 +183,33 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
             ),
 
             const SectionTitle('Location'),
-            TextFormField(controller: _address, decoration: const InputDecoration(labelText: 'Address (required to publish)')),
+            TextFormField(
+              controller: _address,
+              decoration: const InputDecoration(labelText: 'Address (required to publish)'),
+            ),
             gap,
-            TextFormField(controller: _locality, decoration: const InputDecoration(labelText: 'Locality / area')),
+            TextFormField(
+              controller: _locality,
+              decoration: const InputDecoration(labelText: 'Locality / area'),
+            ),
             gap,
-            Row(children: [
-              Expanded(child: TextFormField(controller: _city, decoration: const InputDecoration(labelText: 'City'))),
-              const SizedBox(width: 12),
-              Expanded(child: TextFormField(controller: _state, decoration: const InputDecoration(labelText: 'State'))),
-            ]),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _city,
+                    decoration: const InputDecoration(labelText: 'City'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _state,
+                    decoration: const InputDecoration(labelText: 'State'),
+                  ),
+                ),
+              ],
+            ),
             gap,
             TextFormField(
               controller: _pincode,
@@ -173,25 +219,27 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
               decoration: const InputDecoration(labelText: 'PIN code'),
             ),
             gap,
-            Row(children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _lat,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                  validator: (v) => (v ?? '').isEmpty || double.tryParse(v!) != null ? null : 'Number',
-                  decoration: const InputDecoration(labelText: 'Latitude'),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _lat,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    validator: (v) => (v ?? '').isEmpty || double.tryParse(v!) != null ? null : 'Number',
+                    decoration: const InputDecoration(labelText: 'Latitude'),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextFormField(
-                  controller: _lng,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-                  validator: (v) => (v ?? '').isEmpty || double.tryParse(v!) != null ? null : 'Number',
-                  decoration: const InputDecoration(labelText: 'Longitude'),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _lng,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+                    validator: (v) => (v ?? '').isEmpty || double.tryParse(v!) != null ? null : 'Number',
+                    decoration: const InputDecoration(labelText: 'Longitude'),
+                  ),
                 ),
-              ),
-            ]),
+              ],
+            ),
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text(
@@ -264,7 +312,11 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
 
             SectionTitle(
               'Cancellation refunds',
-              trailing: TextButton.icon(onPressed: _addPolicyRow, icon: const Icon(Icons.add), label: const Text('Add')),
+              trailing: TextButton.icon(
+                onPressed: _addPolicyRow,
+                icon: const Icon(Icons.add),
+                label: const Text('Add'),
+              ),
             ),
             if (_policy.isEmpty)
               const Text('No rule added: the platform default policy applies.')
@@ -329,7 +381,11 @@ class _NumberRow extends StatelessWidget {
           ),
           SizedBox(
             width: 96,
-            child: Text('$value $suffix', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w600)),
+            child: Text(
+              '$value $suffix',
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
           IconButton.filledTonal(
             onPressed: value + step <= max ? () => onChanged(value + step) : null,

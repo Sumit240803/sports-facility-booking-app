@@ -116,8 +116,10 @@ class _PricingScreenState extends State<PricingScreen> {
                   leading: const Icon(Icons.currency_rupee),
                   title: const Text('Base price'),
                   subtitle: const Text('Used whenever no rule below matches'),
-                  trailing: Text(_basePaise == null ? 'Not set' : '${formatPaise(_basePaise)}/hr',
-                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  trailing: Text(
+                    _basePaise == null ? 'Not set' : '${formatPaise(_basePaise)}/hr',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   onTap: _editBase,
                 ),
               ),
@@ -125,7 +127,10 @@ class _PricingScreenState extends State<PricingScreen> {
               const Text('Charge more at peak times or less off-peak. A rule for a specific date beats weekly rules.'),
               const SizedBox(height: 8),
               if (rules.isEmpty)
-                const Padding(padding: EdgeInsets.all(16), child: Center(child: Text('No rules — base price everywhere.'))),
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: Text('No rules — base price everywhere.')),
+                ),
               for (final r in rules)
                 Card(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -225,11 +230,22 @@ class _RuleSheetState extends State<_RuleSheet> {
               },
             ),
           const SizedBox(height: 12),
-          Row(children: [
-            Expanded(child: TimeDropdown(label: 'From', value: _start, allowMidnightEnd: false, onChanged: (v) => setState(() => _start = v))),
-            const SizedBox(width: 12),
-            Expanded(child: TimeDropdown(label: 'To', value: _end, onChanged: (v) => setState(() => _end = v))),
-          ]),
+          Row(
+            children: [
+              Expanded(
+                child: TimeDropdown(
+                  label: 'From',
+                  value: _start,
+                  allowMidnightEnd: false,
+                  onChanged: (v) => setState(() => _start = v),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TimeDropdown(label: 'To', value: _end, onChanged: (v) => setState(() => _end = v)),
+              ),
+            ],
+          ),
           const SizedBox(height: 12),
           TextField(
             controller: _price,
@@ -246,15 +262,15 @@ class _RuleSheetState extends State<_RuleSheet> {
           FilledButton(
             onPressed: valid
                 ? () => Navigator.pop(
-                      context,
-                      PriceRule(
-                        days: _weekly ? (_days.toList()..sort()) : null,
-                        date: _weekly ? null : isoDate(_date),
-                        start: _start,
-                        end: _end,
-                        pricePerHourPaise: paise,
-                      ),
-                    )
+                    context,
+                    PriceRule(
+                      days: _weekly ? (_days.toList()..sort()) : null,
+                      date: _weekly ? null : isoDate(_date),
+                      start: _start,
+                      end: _end,
+                      pricePerHourPaise: paise,
+                    ),
+                  )
                 : null,
             child: const Text('Add rule'),
           ),

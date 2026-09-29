@@ -7,6 +7,7 @@ import '../../widgets/common.dart';
 import '../explore_screen.dart';
 import 'venue_form_screen.dart';
 import 'venue_manage_screen.dart';
+import '../../widgets/skeleton.dart';
 
 /// Venues the user owns or works at. Owners can create new ones.
 class MyVenuesScreen extends StatefulWidget {
@@ -48,7 +49,11 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(widget.standalone ? 'Venues I work at' : 'My venues')),
       floatingActionButton: canCreate
-          ? FloatingActionButton.extended(onPressed: _create, icon: const Icon(Icons.add), label: const Text('New venue'))
+          ? FloatingActionButton.extended(
+              onPressed: _create,
+              icon: const Icon(Icons.add),
+              label: const Text('New venue'),
+            )
           : null,
       body: RefreshIndicator(
         onRefresh: () async {
@@ -57,18 +62,21 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
         },
         child: AsyncView<List<VenueSummary>>(
           future: _venues,
+          loading: const SkeletonList(),
           onRetry: () => setState(_load),
           isEmpty: (v) => v.isEmpty,
-          empty: ListView(children: [
-            const SizedBox(height: 80),
-            MessageView(
-              icon: Icons.store_outlined,
-              title: canCreate ? 'No venues yet' : 'You aren\'t staff at any venue',
-              message: canCreate
-                  ? 'Create your first venue, add courts, hours and prices, then submit it for review.'
-                  : 'Venue owners can invite you by your email address.',
-            ),
-          ]),
+          empty: ListView(
+            children: [
+              const SizedBox(height: 80),
+              MessageView(
+                icon: Icons.store_outlined,
+                title: canCreate ? 'No venues yet' : 'You aren\'t staff at any venue',
+                message: canCreate
+                    ? 'Create your first venue, add courts, hours and prices, then submit it for review.'
+                    : 'Venue owners can invite you by your email address.',
+              ),
+            ],
+          ),
           builder: (context, venues) => ListView.separated(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
             itemCount: venues.length,
@@ -89,10 +97,13 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
                     children: [
                       if (v.place.isNotEmpty) Text(v.place),
                       const SizedBox(height: 4),
-                      Wrap(spacing: 6, children: [
-                        StatusPill(v.status),
-                        if (v.role != null) Chip(label: Text(v.role!), visualDensity: VisualDensity.compact),
-                      ]),
+                      Wrap(
+                        spacing: 6,
+                        children: [
+                          StatusPill(v.status),
+                          if (v.role != null) Chip(label: Text(v.role!), visualDensity: VisualDensity.compact),
+                        ],
+                      ),
                     ],
                   ),
                   trailing: const Icon(Icons.chevron_right),

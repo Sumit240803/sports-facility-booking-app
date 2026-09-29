@@ -86,13 +86,18 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Spacer(),
-                CircleAvatar(
-                  radius: 44,
-                  backgroundColor: scheme.primary,
-                  child: Icon(Icons.sports_tennis, size: 48, color: scheme.onPrimary),
+                Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset('assets/icon/icon.png', width: 104, height: 104),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                Text('EasyPlay', textAlign: TextAlign.center, style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800)),
+                Text(
+                  'EasyPlay',
+                  textAlign: TextAlign.center,
+                  style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 8),
                 Text(
                   'Find and book courts near you in seconds.',

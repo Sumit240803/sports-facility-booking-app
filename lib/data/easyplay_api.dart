@@ -34,8 +34,32 @@ class EasyPlayApi {
       ((await _c.get('/venues/cities'))['cities'] as List).cast<Json>().map((c) => c['city'] as String).toList();
 
   // Venues
-  Future<List<VenueSearchResult>> searchVenues({String? city, String? sport, String? q, int page = 1}) async {
-    final res = await _c.get('/venues', query: {'city': city, 'sport': sport, 'q': q, 'page': page, 'limit': 20});
+  Future<List<VenueSearchResult>> searchVenues({
+    String? city,
+    String? sport,
+    String? q,
+    Set<String> amenities = const {},
+    double? minRating,
+    String? sort,
+    double? lat,
+    double? lng,
+    int page = 1,
+  }) async {
+    final res = await _c.get(
+      '/venues',
+      query: {
+        'city': city,
+        'sport': sport,
+        'q': q,
+        'amenities': amenities.isEmpty ? null : amenities.join(','),
+        'min_rating': minRating,
+        'sort': sort,
+        'lat': lat,
+        'lng': lng,
+        'page': page,
+        'limit': 20,
+      },
+    );
     return (res['venues'] as List).cast<Json>().map(VenueSearchResult.new).toList();
   }
 
@@ -52,12 +76,12 @@ class EasyPlayApi {
 
   // Bookings
   Map<String, Object?> _bookingBody(String courtId, String date, String start, int minutes, String method) => {
-        'court_id': courtId,
-        'date': date,
-        'start': start,
-        'duration_minutes': minutes,
-        'payment_method': method,
-      };
+    'court_id': courtId,
+    'date': date,
+    'start': start,
+    'duration_minutes': minutes,
+    'payment_method': method,
+  };
 
   Future<Quote> quote(String courtId, String date, String start, int minutes, String method) async =>
       Quote((await _c.post('/bookings/quote', _bookingBody(courtId, date, start, minutes, method)))['quote']);
@@ -66,12 +90,35 @@ class EasyPlayApi {
       Booking((await _c.post('/bookings', _bookingBody(courtId, date, start, minutes, method)))['booking']);
 
   Future<List<Booking>> myBookings({String scope = 'upcoming'}) async =>
-      ((await _c.get('/me/bookings', query: {'scope': scope}))['bookings'] as List).cast<Json>().map(Booking.new).toList();
+      ((await _c.get('/me/bookings', query: {'scope': scope}))['bookings'] as List)
+          .cast<Json>()
+          .map(Booking.new)
+          .toList();
 
   Future<Booking> myBooking(String id) async => Booking((await _c.get('/me/bookings/$id'))['booking']);
 
-  Future<void> cancelBooking(String id, {String? reason}) =>
-      _c.post('/me/bookings/$id/cancel', {'reason': ?reason});
+  Future<void> cancelBooking(String id, {String? reason}) => _c.post('/me/bookings/$id/cancel', {'reason': ?reason});
+
+  // Online payment
+  Future<PaymentOrder> startPayment(String bookingId) async =>
+      PaymentOrder(await _c.post('/me/bookings/$bookingId/pay'));
+
+  /// Returns (outcome, refund reason). outcome: confirmed | already_processed | refund_queued | failed
+  Future<(String, String?)> verifyPayment(String bookingId, String orderId, String paymentId, String signature) async {
+    final res = await _c.post('/me/bookings/$bookingId/pay/verify', {
+      'razorpay_order_id': orderId,
+      'razorpay_payment_id': paymentId,
+      'razorpay_signature': signature,
+    });
+    return (res['outcome'] as String? ?? 'failed', res['refund_reason'] as String?);
+  }
+
+  // My reviews
+  Future<List<(Review, String venueName, String venueSlug)>> myReviews() async =>
+      ((await _c.get('/me/reviews'))['reviews'] as List).cast<Json>().map((r) {
+        final venue = (r['venue'] as Json?) ?? const {};
+        return (Review(r), (venue['name'] ?? 'Venue') as String, (venue['slug'] ?? '') as String);
+      }).toList();
 
   // Favourites (list)
   Future<List<Favourite>> favourites() async =>
@@ -104,6 +151,13 @@ class EasyPlayApi {
   Future<int> unreadCount() async =>
       ((await _c.get('/me/notifications', query: {'unread': true, 'limit': 1}))['unread_count'] as num?)?.toInt() ?? 0;
 
+  Future<void> registerPushToken(String token, String platform) =>
+      _c.post('/me/push-tokens', {'token': token, 'platform': platform});
+  Future<void> unregisterPushToken(String token) => _c.deleteWithBody('/me/push-tokens', {'token': token});
+
+  Future<Profile> setNotificationPrefs({bool? email, bool? push}) async =>
+      Profile((await _c.patch('/auth/me', {'notify_email': ?email, 'notify_push': ?push}))['user']);
+
   Future<void> markNotificationRead(String id) => _c.post('/me/notifications/$id/read');
   Future<void> markAllNotificationsRead() => _c.post('/me/notifications/read-all');
 
@@ -130,11 +184,13 @@ class EasyPlayApi {
   }
 
   Future<OwnerApplication> applyAsOwner(String businessName, String businessPhone, String? gstin) async =>
-      OwnerApplication((await _c.post('/owner-applications/me', {
-        'business_name': businessName,
-        'business_phone': businessPhone,
-        if (gstin != null && gstin.isNotEmpty) 'gstin': gstin,
-      }))['application']);
+      OwnerApplication(
+        (await _c.post('/owner-applications/me', {
+          'business_name': businessName,
+          'business_phone': businessPhone,
+          if (gstin != null && gstin.isNotEmpty) 'gstin': gstin,
+        }))['application'],
+      );
 
   // ---------------------------------------------------------------------------
   // Venue management
@@ -170,12 +226,25 @@ class EasyPlayApi {
   Future<List<Photo>> photos(String venueId) async =>
       ((await _c.get('/venues/$venueId/photos'))['photos'] as List).cast<Json>().map(Photo.new).toList();
   Future<void> uploadPhoto(String venueId, String filePath) => _c.upload('/venues/$venueId/photos', 'photo', filePath);
+  Future<void> reorderPhotos(String venueId, List<String> photoIds) =>
+      _c.put('/venues/$venueId/photos/order', {'photo_ids': photoIds});
   Future<void> setCoverPhoto(String venueId, String photoId) => _c.put('/venues/$venueId/photos/$photoId/cover');
   Future<void> deletePhoto(String venueId, String photoId) => _c.delete('/venues/$venueId/photos/$photoId');
 
   // Hours & pricing
   Future<List<HoursRange>> venueHours(String venueId) async =>
       ((await _c.get('/venues/$venueId/hours'))['venue'] as List).cast<Json>().map(HoursRange.fromJson).toList();
+
+  /// Courts with their own hours (court id → ranges). Courts not listed follow the venue.
+  Future<Map<String, List<HoursRange>>> courtHours(String venueId) async {
+    final courts = ((await _c.get('/venues/$venueId/hours'))['courts'] as Json?) ?? const {};
+    return {for (final e in courts.entries) e.key: (e.value as List).cast<Json>().map(HoursRange.fromJson).toList()};
+  }
+
+  Future<void> saveCourtHours(String venueId, String courtId, List<HoursRange> hours) =>
+      _c.put('/venues/$venueId/courts/$courtId/hours', {'hours': hours.map((h) => h.toJson()).toList()});
+  Future<void> resetCourtHours(String venueId, String courtId) => _c.delete('/venues/$venueId/courts/$courtId/hours');
+
   Future<void> saveVenueHours(String venueId, List<HoursRange> hours) =>
       _c.put('/venues/$venueId/hours', {'hours': hours.map((h) => h.toJson()).toList()});
 
@@ -190,13 +259,18 @@ class EasyPlayApi {
   // Blocks
   Future<List<Block>> blocks(String venueId) async =>
       ((await _c.get('/venues/$venueId/blocks'))['blocks'] as List).cast<Json>().map(Block.new).toList();
-  Future<void> addBlock(String venueId, {String? courtId, required DateTime start, required DateTime end, String? reason}) =>
-      _c.post('/venues/$venueId/blocks', {
-        'court_id': ?courtId,
-        'starts_at': start.toUtc().toIso8601String(),
-        'ends_at': end.toUtc().toIso8601String(),
-        if (reason != null && reason.isNotEmpty) 'reason': reason,
-      });
+  Future<void> addBlock(
+    String venueId, {
+    String? courtId,
+    required DateTime start,
+    required DateTime end,
+    String? reason,
+  }) => _c.post('/venues/$venueId/blocks', {
+    'court_id': ?courtId,
+    'starts_at': start.toUtc().toIso8601String(),
+    'ends_at': end.toUtc().toIso8601String(),
+    if (reason != null && reason.isNotEmpty) 'reason': reason,
+  });
   Future<void> deleteBlock(String venueId, String blockId) => _c.delete('/venues/$venueId/blocks/$blockId');
 
   // Front desk
@@ -212,25 +286,26 @@ class EasyPlayApi {
   Future<VenueBooking> venueBooking(String venueId, String bookingId) async =>
       VenueBooking((await _c.get('/venues/$venueId/bookings/$bookingId'))['booking']);
 
-  Future<VenueBooking> venueBookingByReference(String venueId, String reference) async =>
-      VenueBooking((await _c.get('/venues/$venueId/bookings/by-reference/${Uri.encodeComponent(reference)}'))['booking']);
+  Future<VenueBooking> venueBookingByReference(String venueId, String reference) async => VenueBooking(
+    (await _c.get('/venues/$venueId/bookings/by-reference/${Uri.encodeComponent(reference)}'))['booking'],
+  );
 
-  Future<void> walkIn(String venueId, {
+  Future<void> walkIn(
+    String venueId, {
     required String courtId,
     required String date,
     required String start,
     required int minutes,
     required String name,
     required String phone,
-  }) =>
-      _c.post('/venues/$venueId/bookings', {
-        'court_id': courtId,
-        'date': date,
-        'start': start,
-        'duration_minutes': minutes,
-        'customer_name': name,
-        'customer_phone': phone,
-      });
+  }) => _c.post('/venues/$venueId/bookings', {
+    'court_id': courtId,
+    'date': date,
+    'start': start,
+    'duration_minutes': minutes,
+    'customer_name': name,
+    'customer_phone': phone,
+  });
 
   Future<void> checkIn(String venueId, String bookingId, {int? collectedPaise}) =>
       _c.post('/venues/$venueId/bookings/$bookingId/check-in', {'collected_paise': ?collectedPaise});
@@ -243,8 +318,16 @@ class EasyPlayApi {
       _c.post('/venues/$venueId/bookings/$bookingId/cancel', {'reason': reason});
 
   // Dashboard
-  Future<Json> venueDashboard(String venueId) async =>
-      (await _c.get('/venues/$venueId/dashboard'))['dashboard'] as Json;
+  Future<Json> venueDashboard(String venueId, {String? from, String? to}) async =>
+      (await _c.get('/venues/$venueId/dashboard', query: {'from': from, 'to': to}))['dashboard'] as Json;
+
+  // Earnings & payouts
+  Future<Earnings> earnings(String venueId) async =>
+      Earnings(await _c.get('/venues/$venueId/earnings', query: {'limit': 50}));
+  Future<PayoutSettings> payoutSettings(String venueId) async =>
+      PayoutSettings((await _c.get('/venues/$venueId/payout-settings'))['settings']);
+  Future<PayoutSettings> savePayoutSettings(String venueId, Json body) async =>
+      PayoutSettings((await _c.put('/venues/$venueId/payout-settings', body))['settings']);
 
   // Staff
   Future<(List<StaffMember>, List<StaffInvite>)> staff(String venueId) async {
@@ -285,8 +368,76 @@ class EasyPlayApi {
           .map((v) => VenueSummary(v))
           .toList();
   Future<void> approveVenue(String venueId) => _c.post('/admin/venues/$venueId/approve');
-  Future<void> rejectVenue(String venueId, String reason) => _c.post('/admin/venues/$venueId/reject', {'reason': reason});
+  Future<void> rejectVenue(String venueId, String reason) =>
+      _c.post('/admin/venues/$venueId/reject', {'reason': reason});
   Future<void> suspendVenue(String venueId, String reason) =>
       _c.post('/admin/venues/$venueId/suspend', {'reason': reason});
   Future<void> reinstateVenue(String venueId) => _c.post('/admin/venues/$venueId/reinstate');
+
+  // Users
+  Future<List<AdminUser>> adminUsers({String? q, String? role, String? status}) async =>
+      ((await _c.get('/admin/users', query: {'q': q, 'role': role, 'status': status, 'limit': 50}))['users'] as List)
+          .cast<Json>()
+          .map(AdminUser.new)
+          .toList();
+  Future<void> updateUser(String userId, {String? role, String? status}) =>
+      _c.patch('/admin/users/$userId', {'role': ?role, 'status': ?status});
+
+  // Review moderation
+  Future<List<AdminReview>> adminReviews(String status) async =>
+      ((await _c.get('/admin/reviews', query: {'status': status, 'limit': 50}))['reviews'] as List)
+          .cast<Json>()
+          .map(AdminReview.new)
+          .toList();
+  Future<void> hideReview(String reviewId, String reason) =>
+      _c.post('/admin/reviews/$reviewId/hide', {'reason': reason});
+  Future<void> unhideReview(String reviewId) => _c.post('/admin/reviews/$reviewId/unhide');
+
+  // Platform dashboard
+  Future<Json> adminDashboard({String? from, String? to}) async =>
+      (await _c.get('/admin/dashboard', query: {'from': from, 'to': to}))['dashboard'] as Json;
+
+  // Payouts
+  Future<List<VenueBalance>> venueBalances() async =>
+      ((await _c.get('/admin/payouts/balances'))['venues'] as List).cast<Json>().map(VenueBalance.new).toList();
+  Future<List<AdminPayout>> adminPayouts({String? status}) async =>
+      ((await _c.get('/admin/payouts', query: {'status': status, 'limit': 50}))['payouts'] as List)
+          .cast<Json>()
+          .map(AdminPayout.new)
+          .toList();
+  Future<void> resolvePayout(String payoutId, String status, {String? transferId, String? reason}) =>
+      _c.post('/admin/payouts/$payoutId/resolve', {
+        'status': status,
+        if (transferId != null && transferId.isNotEmpty) 'razorpay_transfer_id': transferId,
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+      });
+  Future<(PayoutSettings, int)> adminPayoutSettings(String venueId) async {
+    final res = await _c.get('/admin/venues/$venueId/payout-settings');
+    return (PayoutSettings(res['settings']), (res['balance_paise'] as num?)?.toInt() ?? 0);
+  }
+
+  Future<void> setLinkedAccount(String venueId, String? accountId) =>
+      _c.put('/admin/venues/$venueId/payout-settings', {'razorpay_account_id': accountId});
+  Future<void> recordPayout(String venueId, int amountPaise, String reference, String? note) => _c.post(
+    '/admin/venues/$venueId/payouts',
+    {'amount_paise': amountPaise, 'reference': reference, 'note': (note == null || note.isEmpty) ? null : note},
+  );
+  Future<void> addAdjustment(String venueId, int amountPaise, String note) =>
+      _c.post('/admin/venues/$venueId/adjustments', {'amount_paise': amountPaise, 'note': note});
+
+  // Refunds
+  Future<List<Refund>> refunds({String? status}) async =>
+      ((await _c.get('/admin/refunds', query: {'status': status, 'limit': 50}))['refunds'] as List)
+          .cast<Json>()
+          .map(Refund.new)
+          .toList();
+  Future<void> retryRefund(String refundId) => _c.post('/admin/refunds/$refundId/retry');
+
+  // Catalog (table = sports | amenities)
+  Future<List<AdminCatalogItem>> adminCatalog(String table) async =>
+      ((await _c.get('/admin/$table'))[table] as List).cast<Json>().map(AdminCatalogItem.new).toList();
+  Future<void> createCatalogItem(String table, String id, String name, int sortOrder) =>
+      _c.post('/admin/$table', {'id': id, 'name': name, 'sort_order': sortOrder});
+  Future<void> updateCatalogItem(String table, String id, {String? name, bool? isActive, int? sortOrder}) =>
+      _c.patch('/admin/$table/$id', {'name': ?name, 'is_active': ?isActive, 'sort_order': ?sortOrder});
 }

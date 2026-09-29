@@ -6,6 +6,7 @@ import '../widgets/async_view.dart';
 import '../widgets/common.dart';
 import 'explore_screen.dart';
 import 'venue_detail_screen.dart';
+import '../widgets/skeleton.dart';
 
 class FavouritesScreen extends StatefulWidget {
   const FavouritesScreen({super.key});
@@ -36,6 +37,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
       appBar: AppBar(title: const Text('Favourites')),
       body: AsyncView<List<Favourite>>(
         future: _favs,
+        loading: const SkeletonList(),
         onRetry: () => setState(_load),
         isEmpty: (f) => f.isEmpty,
         empty: const MessageView(
@@ -55,7 +57,9 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 enabled: f.available,
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => VenueDetailScreen(idOrSlug: f.slug, title: f.name)),
+                  MaterialPageRoute(
+                    builder: (_) => VenueDetailScreen(idOrSlug: f.slug, title: f.name),
+                  ),
                 ).then((_) => setState(_load)),
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(10),
