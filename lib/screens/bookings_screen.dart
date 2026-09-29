@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../app_scope.dart';
 import '../core/format.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/async_view.dart';
+import 'reviews.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
@@ -225,6 +227,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
+  Future<void> _review(Booking b) async {
+    Review? existing;
+    try {
+      existing = await context.api.myReviewFor(b.venueId);
+    } catch (_) {}
+    if (!mounted) return;
+    await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => WriteReviewSheet(venueId: b.venueId, venueName: b.venueName ?? 'this venue', existing: existing),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -248,6 +264,16 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     children: [
                       Text('Booking reference', style: text.labelLarge),
                       const SizedBox(height: 4),
+                      if (b.status == 'confirmed' || b.status == 'pending_payment') ...[
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                          child: QrImageView(data: b.reference, size: 180, backgroundColor: Colors.white),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('Show this at the front desk to check in', style: text.bodySmall),
+                        const SizedBox(height: 12),
+                      ],
                       SelectableText(b.reference,
                           style: text.headlineMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 2)),
                       const SizedBox(height: 8),
@@ -276,6 +302,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ]),
               ),
               const SizedBox(height: 24),
+              if (b.status == 'completed' && b.venueId.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: FilledButton.tonalIcon(
+                    onPressed: () => _review(b),
+                    icon: const Icon(Icons.rate_review_outlined),
+                    label: const Text('Rate this venue'),
+                  ),
+                ),
               if (b.isCancellable && (b.cancellation?['allowed'] ?? true) == true)
                 OutlinedButton.icon(
                   onPressed: () => _cancel(b),

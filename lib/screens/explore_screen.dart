@@ -6,6 +6,7 @@ import '../app_scope.dart';
 import '../core/format.dart';
 import '../data/models.dart';
 import '../widgets/async_view.dart';
+import 'notifications_screen.dart';
 import 'venue_detail_screen.dart';
 
 class ExploreScreen extends StatefulWidget {
@@ -70,6 +71,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
       appBar: AppBar(
         title: const Text('Find a court'),
         actions: [
+          const NotificationBell(),
           if (_cities.isNotEmpty)
             PopupMenuButton<String?>(
               tooltip: 'City',

@@ -38,6 +38,21 @@ class ApiClient {
   Future<Map<String, dynamic>> put(String path, [Object? body]) => _send('PUT', path, body: body);
   Future<Map<String, dynamic>> delete(String path) => _send('DELETE', path);
 
+  /// Multipart upload of a single file field.
+  Future<Map<String, dynamic>> upload(String path, String field, String filePath, {bool retried = false}) async {
+    final req = http.MultipartRequest('POST', Uri.parse('$apiBaseUrl$path'))
+      ..headers['Accept'] = 'application/json'
+      ..files.add(await http.MultipartFile.fromPath(field, filePath));
+    final token = session.accessToken;
+    if (token != null) req.headers['Authorization'] = 'Bearer $token';
+
+    final res = await http.Response.fromStream(await _http.send(req));
+    if (res.statusCode == 401 && !retried && session.refreshToken != null && await _refresh()) {
+      return upload(path, field, filePath, retried: true);
+    }
+    return _decode(res);
+  }
+
   Future<Map<String, dynamic>> _send(
     String method,
     String path, {
@@ -67,7 +82,10 @@ class ApiClient {
       }
       await session.clear();
     }
+    return _decode(res);
+  }
 
+  Map<String, dynamic> _decode(http.Response res) {
     final decoded = res.body.isEmpty ? <String, dynamic>{} : jsonDecode(res.body);
     final json = decoded is Map<String, dynamic> ? decoded : <String, dynamic>{'data': decoded};
     if (res.statusCode >= 400) {
