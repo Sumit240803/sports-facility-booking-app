@@ -6,8 +6,10 @@ import '../core/format.dart';
 import '../data/models.dart';
 import '../theme/app_theme.dart';
 import '../widgets/async_view.dart';
+import '../widgets/common.dart';
 import 'booking_sheet.dart';
 import 'explore_screen.dart';
+import 'reviews.dart';
 
 class VenueDetailScreen extends StatefulWidget {
   const VenueDetailScreen({super.key, required this.idOrSlug, required this.title});
@@ -73,6 +75,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
             ),
             SliverToBoxAdapter(child: _Info(venue: v)),
             SliverToBoxAdapter(child: _SlotPicker(venue: v)),
+            SliverToBoxAdapter(child: VenueReviewsSection(venueId: v.id, venueName: v.name)),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),
@@ -159,6 +162,21 @@ class _SlotPickerState extends State<_SlotPicker> {
     if (booked == true && mounted) setState(_load);
   }
 
+  Future<void> _remind(Availability a, CourtAvailability court, Slot slot) async {
+    final ok = await confirm(
+      context,
+      'Remind me?',
+      message: 'Booking for this slot isn\x27t open yet. We\x27ll notify you when it opens.',
+      action: 'Set reminder',
+    );
+    if (!ok || !mounted) return;
+    await runAction(
+      context,
+      () => context.api.addReminder(court.id, a.date, slot.start),
+      success: 'Reminder set',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
@@ -241,7 +259,14 @@ class _SlotPickerState extends State<_SlotPicker> {
                           childAspectRatio: 1.6,
                           children: [
                             for (final s in court.slots)
-                              _SlotTile(slot: s, onTap: s.isAvailable ? () => _openBooking(a, court, s) : null),
+                              _SlotTile(
+                                slot: s,
+                                onTap: s.isAvailable
+                                    ? () => _openBooking(a, court, s)
+                                    : s.status == 'not_yet_open'
+                                        ? () => _remind(a, court, s)
+                                        : null,
+                              ),
                           ],
                         ),
                 ),
@@ -312,6 +337,9 @@ class _SlotTile extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 2),
+            if (slot.status == 'not_yet_open')
+              Icon(Icons.notifications_active_outlined, size: 14, color: scheme.outline)
+            else
             Text(
               available ? formatPaise(slot.pricePaise) : titleCase(slot.status),
               style: TextStyle(fontSize: 12, color: available ? scheme.onPrimaryContainer : scheme.outline),
