@@ -6,6 +6,7 @@ import '../widgets/async_view.dart';
 import '../widgets/common.dart';
 import 'reviews.dart';
 import 'venue_detail_screen.dart';
+import '../widgets/app_icons.dart';
 
 class MyReviewsScreen extends StatefulWidget {
   const MyReviewsScreen({super.key});
@@ -44,7 +45,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
         onRetry: () => setState(_load),
         isEmpty: (r) => r.isEmpty,
         empty: const MessageView(
-          icon: Icons.rate_review_outlined,
+          icon: AppIcons.writeReview,
           title: 'No reviews yet',
           message: 'After you play, open the booking and tap "Rate this venue".',
         ),
@@ -69,7 +70,7 @@ class _MyReviewsScreenState extends State<MyReviewsScreen> {
                         ),
                   trailing: IconButton(
                     tooltip: 'Edit',
-                    icon: const Icon(Icons.edit_outlined),
+                    icon: const AppIcon(AppIcons.edit),
                     onPressed: () => _edit(review, venueName),
                   ),
                 ),

@@ -7,6 +7,7 @@ import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import 'hours_screen.dart';
 import 'pricing_screen.dart';
+import '../../widgets/app_icons.dart';
 
 class CourtsScreen extends StatefulWidget {
   const CourtsScreen({super.key, required this.venue});
@@ -43,14 +44,18 @@ class _CourtsScreenState extends State<CourtsScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Courts')),
       floatingActionButton: canEdit
-          ? FloatingActionButton.extended(onPressed: _edit, icon: const Icon(Icons.add), label: const Text('Add court'))
+          ? FloatingActionButton.extended(
+              onPressed: _edit,
+              icon: const AppIcon(AppIcons.add),
+              label: const Text('Add court'),
+            )
           : null,
       body: AsyncView<List<Court>>(
         future: _courts,
         onRetry: () => setState(_load),
         isEmpty: (c) => c.isEmpty,
         empty: const MessageView(
-          icon: Icons.sports_tennis,
+          icon: AppIcons.racket,
           title: 'No courts yet',
           message: 'A court is anything players book: a turf, a badminton court, a cricket net…',
         ),
@@ -94,7 +99,7 @@ class _CourtsScreenState extends State<CourtsScreen> {
                               builder: (_) => PricingScreen(venue: widget.venue, court: c),
                             ),
                           ).then((_) => setState(_load)),
-                          icon: const Icon(Icons.price_change_outlined),
+                          icon: const AppIcon(AppIcons.priceTag),
                           label: const Text('Pricing'),
                         ),
                         TextButton.icon(
@@ -104,12 +109,12 @@ class _CourtsScreenState extends State<CourtsScreen> {
                               builder: (_) => HoursScreen(venue: widget.venue, court: c),
                             ),
                           ),
-                          icon: const Icon(Icons.schedule),
+                          icon: const AppIcon(AppIcons.clock),
                           label: const Text('Hours'),
                         ),
                         TextButton.icon(
                           onPressed: () => _edit(c),
-                          icon: const Icon(Icons.edit_outlined),
+                          icon: const AppIcon(AppIcons.edit),
                           label: const Text('Edit'),
                         ),
                       ],
@@ -218,7 +223,7 @@ class _CourtFormScreenState extends State<CourtFormScreen> {
       appBar: AppBar(
         title: Text(_c == null ? 'Add court' : 'Edit court'),
         actions: [
-          if (_c != null) IconButton(tooltip: 'Delete', onPressed: _delete, icon: const Icon(Icons.delete_outline)),
+          if (_c != null) IconButton(tooltip: 'Delete', onPressed: _delete, icon: const AppIcon(AppIcons.delete)),
         ],
       ),
       body: Form(

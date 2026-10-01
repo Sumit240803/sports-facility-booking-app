@@ -12,6 +12,7 @@ import 'moderation_screen.dart';
 import 'payouts_screen.dart';
 import 'refunds_screen.dart';
 import 'users_screen.dart';
+import '../../widgets/app_icons.dart';
 
 /// Admin home: platform numbers, things needing attention, and every admin tool.
 class AdminScreen extends StatefulWidget {
@@ -62,7 +63,9 @@ class _AdminScreenState extends State<AdminScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Admin'),
-        actions: [IconButton(tooltip: 'Date range', onPressed: _pickRange, icon: const Icon(Icons.date_range))],
+        actions: [
+          IconButton(tooltip: 'Date range', onPressed: _pickRange, icon: const AppIcon(AppIcons.calendarRange)),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -99,25 +102,25 @@ class _AdminScreenState extends State<AdminScreen> {
                         if (pendingOwners > 0)
                           _AttentionTile(
                             '$pendingOwners owner application${pendingOwners == 1 ? '' : 's'} to review',
-                            Icons.person_add_alt,
+                            AppIcons.userAdd,
                             () => _open(const AdminQueuesScreen()),
                           ),
                         if (pendingVenues > 0)
                           _AttentionTile(
                             '$pendingVenues venue${pendingVenues == 1 ? '' : 's'} waiting for approval',
-                            Icons.store,
+                            AppIcons.manage,
                             () => _open(const AdminQueuesScreen(initialIndex: 1)),
                           ),
                         if (failedRefunds > 0)
                           _AttentionTile(
                             '$failedRefunds failed refund${failedRefunds == 1 ? '' : 's'}',
-                            Icons.money_off,
+                            AppIcons.refundOff,
                             () => _open(const RefundsScreen(initialStatus: 'failed')),
                           ),
                         if (stuckPayouts > 0)
                           _AttentionTile(
                             '$stuckPayouts payout${stuckPayouts == 1 ? '' : 's'} stuck in processing',
-                            Icons.hourglass_bottom,
+                            AppIcons.hourglass,
                             () => _open(const PayoutsScreen(initialTab: 1)),
                           ),
                       ],
@@ -141,37 +144,37 @@ class _AdminScreenState extends State<AdminScreen> {
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.7,
                   children: [
-                    StatTile('Bookings', '${n(bookings, 'total')}', Icons.event_available),
-                    StatTile('Gross value', formatPaise(n(money, 'gross_booking_value_paise')), Icons.receipt_long),
-                    StatTile('Online captured', formatPaise(n(money, 'online_captured_paise')), Icons.credit_card),
+                    StatTile('Bookings', '${n(bookings, 'total')}', AppIcons.calendarCheck),
+                    StatTile('Gross value', formatPaise(n(money, 'gross_booking_value_paise')), AppIcons.receipt),
+                    StatTile('Online captured', formatPaise(n(money, 'online_captured_paise')), AppIcons.card),
                     StatTile(
                       'Platform net',
                       formatPaise(n(money, 'platform_net_paise')),
-                      Icons.savings_outlined,
+                      AppIcons.savings,
                       color: n(money, 'platform_net_paise') < 0 ? AppColors.danger : null,
                     ),
                     StatTile(
                       'Owed to venues',
                       formatPaise(n(money, 'owed_to_venues_paise')),
-                      Icons.account_balance_outlined,
+                      AppIcons.bank,
                       onTap: () => _open(const PayoutsScreen()),
                     ),
                     StatTile(
                       'Refunds',
                       formatPaise(n(money, 'refunds_paise')),
-                      Icons.undo,
+                      AppIcons.refund,
                       onTap: () => _open(const RefundsScreen()),
                     ),
                     StatTile(
                       'Live venues',
                       '${n(venues, 'live')}',
-                      Icons.storefront,
+                      AppIcons.storefront,
                       onTap: () => _open(const AdminQueuesScreen(initialIndex: 2)),
                     ),
                     StatTile(
                       'Users',
                       '${n(users, 'total')} (+${n(users, 'new_in_period')})',
-                      Icons.people_outline,
+                      AppIcons.users,
                       onTap: () => _open(const UsersScreen()),
                     ),
                   ],
@@ -189,32 +192,27 @@ class _AdminScreenState extends State<AdminScreen> {
                   child: Column(
                     children: [
                       _tool(
-                        Icons.fact_check_outlined,
+                        AppIcons.checklist,
                         'Approvals & venues',
                         'Owner applications, venue review, suspend',
                         () => _open(const AdminQueuesScreen()),
                       ),
+                      _tool(AppIcons.users, 'Users', 'Search, change role, suspend', () => _open(const UsersScreen())),
                       _tool(
-                        Icons.people_outline,
-                        'Users',
-                        'Search, change role, suspend',
-                        () => _open(const UsersScreen()),
-                      ),
-                      _tool(
-                        Icons.reviews_outlined,
+                        AppIcons.review,
                         'Review moderation',
                         'Hide abusive reviews',
                         () => _open(const ModerationScreen()),
                       ),
                       _tool(
-                        Icons.account_balance_wallet_outlined,
+                        AppIcons.wallet,
                         'Payouts',
                         'Venue balances, record payouts, adjustments',
                         () => _open(const PayoutsScreen()),
                       ),
-                      _tool(Icons.undo, 'Refunds', 'Track and retry refunds', () => _open(const RefundsScreen())),
+                      _tool(AppIcons.refund, 'Refunds', 'Track and retry refunds', () => _open(const RefundsScreen())),
                       _tool(
-                        Icons.category_outlined,
+                        AppIcons.category,
                         'Sports & amenities',
                         'Catalog shown to owners and players',
                         () => _open(const CatalogScreen()),
@@ -245,11 +243,11 @@ class _AdminScreenState extends State<AdminScreen> {
     );
   }
 
-  Widget _tool(IconData icon, String title, String subtitle, VoidCallback onTap) => ListTile(
-    leading: Icon(icon),
+  Widget _tool(AppIconData icon, String title, String subtitle, VoidCallback onTap) => ListTile(
+    leading: IconBadge(icon),
     title: Text(title),
     subtitle: Text(subtitle),
-    trailing: const Icon(Icons.chevron_right),
+    trailing: const AppIcon(AppIcons.chevronRight),
     onTap: onTap,
   );
 }
@@ -257,19 +255,19 @@ class _AdminScreenState extends State<AdminScreen> {
 class _AttentionTile extends StatelessWidget {
   const _AttentionTile(this.text, this.icon, this.onTap);
   final String text;
-  final IconData icon;
+  final AppIconData icon;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.onErrorContainer;
     return ListTile(
-      leading: Icon(icon, color: color),
+      leading: AppIcon(icon, color: color),
       title: Text(
         text,
         style: TextStyle(color: color, fontWeight: FontWeight.w600),
       ),
-      trailing: Icon(Icons.chevron_right, color: color),
+      trailing: AppIcon(AppIcons.chevronRight, color: color),
       onTap: onTap,
     );
   }

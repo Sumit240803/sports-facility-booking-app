@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../app_scope.dart';
 import '../data/models.dart';
 import '../widgets/common.dart';
+import '../widgets/app_icons.dart';
 
 /// Shown after the first sign-in until name, phone and city are set.
 class OnboardingScreen extends StatefulWidget {
@@ -79,7 +80,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _name,
                 validator: required,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline)),
+                decoration: const InputDecoration(labelText: 'Full name', prefixIcon: AppIcon(AppIcons.user)),
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -88,14 +89,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 validator: (v) => RegExp(r'^\+[1-9]\d{7,14}$').hasMatch((v ?? '').replaceAll(' ', ''))
                     ? null
                     : 'Use international format, e.g. +919876543210',
-                decoration: const InputDecoration(labelText: 'Phone', prefixIcon: Icon(Icons.phone_outlined)),
+                decoration: const InputDecoration(labelText: 'Phone', prefixIcon: AppIcon(AppIcons.phone)),
               ),
               const SizedBox(height: 12),
               TextFormField(
                 controller: _city,
                 validator: required,
                 textCapitalization: TextCapitalization.words,
-                decoration: const InputDecoration(labelText: 'City', prefixIcon: Icon(Icons.location_city)),
+                decoration: const InputDecoration(labelText: 'City', prefixIcon: AppIcon(AppIcons.city)),
               ),
               if (_allSports.isNotEmpty) ...[
                 const SizedBox(height: 20),

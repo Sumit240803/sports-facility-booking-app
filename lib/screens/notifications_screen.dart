@@ -7,6 +7,7 @@ import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_icons.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -59,7 +60,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           empty: ListView(
             children: const [
               SizedBox(height: 80),
-              MessageView(icon: Icons.notifications_none, title: 'No notifications yet'),
+              MessageView(icon: AppIcons.notificationOff, title: 'No notifications yet'),
             ],
           ),
           builder: (context, d) => ListView.separated(
@@ -72,7 +73,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 tileColor: n.isRead ? null : scheme.primaryContainer.withValues(alpha: 0.35),
                 leading: CircleAvatar(
                   backgroundColor: scheme.secondaryContainer,
-                  child: Icon(_icon(n.type), color: scheme.onSecondaryContainer),
+                  child: AppIcon(_icon(n.type), color: scheme.onSecondaryContainer),
                 ),
                 title: Text(n.title, style: TextStyle(fontWeight: n.isRead ? FontWeight.normal : FontWeight.w700)),
                 subtitle: Text(n.body),
@@ -89,13 +90,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  IconData _icon(String type) {
-    if (type.contains('booking')) return Icons.event_available;
-    if (type.contains('reminder') || type.contains('slot')) return Icons.alarm;
-    if (type.contains('review')) return Icons.rate_review_outlined;
-    if (type.contains('refund') || type.contains('payment')) return Icons.payments_outlined;
-    if (type.contains('venue') || type.contains('owner')) return Icons.store_outlined;
-    return Icons.notifications_outlined;
+  AppIconData _icon(String type) {
+    if (type.contains('booking')) return AppIcons.calendarCheck;
+    if (type.contains('reminder') || type.contains('slot')) return AppIcons.alarm;
+    if (type.contains('review')) return AppIcons.writeReview;
+    if (type.contains('refund') || type.contains('payment')) return AppIcons.cash;
+    if (type.contains('venue') || type.contains('owner')) return AppIcons.manage;
+    return AppIcons.notification;
   }
 }
 
@@ -136,7 +137,7 @@ class _NotificationBellState extends State<NotificationBell> {
       icon: Badge(
         isLabelVisible: _unread > 0,
         label: Text(_unread > 99 ? '99+' : '$_unread'),
-        child: const Icon(Icons.notifications_outlined),
+        child: const AppIcon(AppIcons.notification),
       ),
     );
   }

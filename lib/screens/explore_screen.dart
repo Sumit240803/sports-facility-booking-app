@@ -13,6 +13,7 @@ import '../widgets/common.dart';
 import '../widgets/skeleton.dart';
 import 'notifications_screen.dart';
 import 'venue_detail_screen.dart';
+import '../widgets/app_icons.dart';
 
 class ExploreScreen extends StatefulWidget {
   const ExploreScreen({super.key});
@@ -208,14 +209,14 @@ class _ExploreScreenState extends State<ExploreScreen> {
           shrinkWrap: true,
           children: [
             ListTile(
-              leading: const Icon(Icons.public),
+              leading: const AppIcon(AppIcons.globe),
               title: const Text('All cities'),
               selected: _city == null && _here == null,
               onTap: () => Navigator.pop(context, ''),
             ),
             for (final c in _cities)
               ListTile(
-                leading: const Icon(Icons.location_city),
+                leading: const AppIcon(AppIcons.city),
                 title: Text(c),
                 selected: _here == null && _city?.toLowerCase() == c.toLowerCase(),
                 onTap: () => Navigator.pop(context, c),
@@ -265,10 +266,10 @@ class _ExploreScreenState extends State<ExploreScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_here != null ? Icons.near_me : Icons.location_on, size: 16, color: scheme.primary),
+                        AppIcon(_here != null ? AppIcons.nearMe : AppIcons.location, size: 16, color: scheme.primary),
                         const SizedBox(width: 4),
                         Text(where, style: text.labelLarge?.copyWith(color: scheme.primary)),
-                        if (_cities.isNotEmpty) Icon(Icons.expand_more, size: 18, color: scheme.primary),
+                        if (_cities.isNotEmpty) AppIcon(AppIcons.expand, size: 18, color: scheme.primary),
                       ],
                     ),
                   ),
@@ -281,7 +282,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                   icon: Badge(
                     isLabelVisible: _activeFilters > 0,
                     label: Text('$_activeFilters'),
-                    child: const Icon(Icons.tune),
+                    child: const AppIcon(AppIcons.filter),
                   ),
                 ),
                 const NotificationBell(),
@@ -295,7 +296,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: SearchBar(
                         hintText: 'Search turfs, courts, areas…',
-                        leading: const Icon(Icons.search),
+                        leading: const AppIcon(AppIcons.search),
                         elevation: const WidgetStatePropertyAll(0),
                         onChanged: _onQueryChanged,
                       ),
@@ -314,7 +315,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                                       dimension: 16,
                                       child: CircularProgressIndicator(strokeWidth: 2),
                                     )
-                                  : const Icon(Icons.near_me_outlined, size: 18),
+                                  : const AppIcon(AppIcons.nearMe, size: 18),
                               label: const Text('Near me'),
                               selected: _here != null,
                               onSelected: _locating ? null : (_) => _toggleNearMe(),
@@ -324,7 +325,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
                             Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: ChoiceChip(
-                                avatar: s == null ? null : Icon(sportIcon(s.id), size: 18),
+                                avatar: s == null ? null : AppIcon(sportIcon(s.id), size: 18),
                                 label: Text(s?.name ?? 'All sports'),
                                 selected: _sport == s?.id,
                                 onSelected: (_) {
@@ -353,7 +354,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: MessageView(
-            icon: Icons.cloud_off,
+            icon: AppIcons.offline,
             title: 'Couldn\'t load venues',
             message: '$_error',
             action: FilledButton.tonal(onPressed: _search, child: const Text('Retry')),
@@ -369,7 +370,7 @@ class _ExploreScreenState extends State<ExploreScreen> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: MessageView(
-            icon: Icons.search_off,
+            icon: AppIcons.searchOff,
             title: 'No venues found',
             message: _activeFilters > 0 || _sport != null || _query.isNotEmpty
                 ? 'Try removing some filters.'
@@ -463,7 +464,7 @@ class VenueCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.near_me, size: 14, color: Colors.white),
+                            const AppIcon(AppIcons.nearMe, size: 14, color: Colors.white),
                             const SizedBox(width: 4),
                             Text(
                               '${venue.distanceKm!.toStringAsFixed(1)} km',
@@ -485,7 +486,7 @@ class VenueCard extends StatelessWidget {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      Icon(Icons.place_outlined, size: 16, color: scheme.onSurfaceVariant),
+                      AppIcon(AppIcons.location, size: 16, color: scheme.onSurfaceVariant),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -518,7 +519,7 @@ class VenueCard extends StatelessWidget {
 class _Tag extends StatelessWidget {
   const _Tag({required this.label, this.icon});
   final String label;
-  final IconData? icon;
+  final AppIconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -529,7 +530,7 @@ class _Tag extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[Icon(icon, size: 14, color: scheme.onSecondaryContainer), const SizedBox(width: 4)],
+          if (icon != null) ...[AppIcon(icon!, size: 14, color: scheme.onSecondaryContainer), const SizedBox(width: 4)],
           Text(label, style: TextStyle(fontSize: 12, color: scheme.onSecondaryContainer)),
         ],
       ),
@@ -551,7 +552,7 @@ class RatingPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star_rounded, size: 16, color: scheme.onTertiaryContainer),
+          RatingStar(filled: true, size: 16, color: scheme.onTertiaryContainer),
           const SizedBox(width: 2),
           Text(
             '${rating.toStringAsFixed(1)} ($count)',
@@ -572,7 +573,7 @@ class VenueImage extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final placeholder = ColoredBox(
       color: scheme.primaryContainer,
-      child: Center(child: Icon(Icons.stadium_outlined, size: 48, color: scheme.onPrimaryContainer)),
+      child: Center(child: AppIcon(AppIcons.venue, size: 48, color: scheme.onPrimaryContainer)),
     );
     if (url == null) return placeholder;
     return CachedNetworkImage(

@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 final _when = DateFormat('d MMM, h:mm a');
 
@@ -82,11 +83,7 @@ class _BalancesState extends State<_Balances> with AutomaticKeepAliveClientMixin
         empty: ListView(
           children: const [
             SizedBox(height: 60),
-            MessageView(
-              icon: Icons.check_circle_outline,
-              title: 'All settled',
-              message: 'No venue has a balance right now.',
-            ),
+            MessageView(icon: AppIcons.check, title: 'All settled', message: 'No venue has a balance right now.'),
           ],
         ),
         builder: (context, list) {
@@ -234,28 +231,28 @@ class _VenuePayoutSheetState extends State<_VenuePayoutSheet> {
               const SizedBox(height: 12),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: Icon(s.upi != null ? Icons.qr_code : Icons.account_balance),
+                leading: AppIcon(s.upi != null ? AppIcons.qr : AppIcons.bank),
                 title: Text(dest.isEmpty ? 'No payout details yet' : dest),
                 subtitle: Text('${s.mode == 'route' ? 'Automatic (Route)' : 'Manual'} payouts'),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.link),
+                leading: const AppIcon(AppIcons.link),
                 title: Text(s.linkedAccount ?? 'No Razorpay linked account'),
                 subtitle: const Text('Needed for automatic payouts'),
-                trailing: const Icon(Icons.edit_outlined),
+                trailing: const AppIcon(AppIcons.edit),
                 onTap: () => _linkedAccount(s),
               ),
               const SizedBox(height: 12),
               FilledButton.icon(
                 onPressed: () => _recordPayout(balance),
-                icon: const Icon(Icons.north_east),
+                icon: const AppIcon(AppIcons.payout),
                 label: const Text('Record manual payout'),
               ),
               const SizedBox(height: 8),
               OutlinedButton.icon(
                 onPressed: _adjust,
-                icon: const Icon(Icons.tune),
+                icon: const AppIcon(AppIcons.filter),
                 label: const Text('Ledger adjustment'),
               ),
               const SizedBox(height: 8),
@@ -305,12 +302,12 @@ class _HistoryState extends State<_History> with AutomaticKeepAliveClientMixin {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.check_circle_outline),
+              leading: const AppIcon(AppIcons.check),
               title: const Text('Mark as paid'),
               onTap: () => Navigator.pop(context, 'paid'),
             ),
             ListTile(
-              leading: const Icon(Icons.cancel_outlined),
+              leading: const AppIcon(AppIcons.cancel),
               title: const Text('Mark as failed (returns balance)'),
               onTap: () => Navigator.pop(context, 'failed'),
             ),
@@ -372,7 +369,7 @@ class _HistoryState extends State<_History> with AutomaticKeepAliveClientMixin {
             future: _data,
             onRetry: () => setState(_load),
             isEmpty: (d) => d.$1.isEmpty,
-            empty: const MessageView(icon: Icons.history, title: 'No payouts'),
+            empty: const MessageView(icon: AppIcons.history, title: 'No payouts'),
             builder: (context, d) => ListView.separated(
               padding: const EdgeInsets.all(16),
               itemCount: d.$1.length,

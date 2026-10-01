@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../core/format.dart';
 import '../theme/app_theme.dart';
+import './app_icons.dart';
 
 void showMessage(BuildContext context, Object message) {
   ScaffoldMessenger.of(context)
@@ -78,9 +81,10 @@ Future<String?> promptText(
 }
 
 class SectionTitle extends StatelessWidget {
-  const SectionTitle(this.text, {super.key, this.trailing});
+  const SectionTitle(this.text, {super.key, this.trailing, this.icon});
   final String text;
   final Widget? trailing;
+  final AppIconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +92,10 @@ class SectionTitle extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
       child: Row(
         children: [
+          if (icon != null) ...[
+            AppIcon(icon!, size: 20, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 8),
+          ],
           Expanded(
             child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
           ),
@@ -129,15 +137,67 @@ class Stars extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.tertiary;
     return Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        for (var i = 1; i <= 5; i++)
-          Icon(i <= rating ? Icons.star_rounded : Icons.star_outline_rounded, size: size, color: color),
-      ],
+      children: [for (var i = 1; i <= 5; i++) RatingStar(filled: i <= rating, size: size)],
     );
   }
+}
+
+/// A rating star: solid accent when filled, outlined when empty.
+class RatingStar extends StatelessWidget {
+  const RatingStar({super.key, required this.filled, this.size = 16, this.color});
+  final bool filled;
+  final double size;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    if (!filled) return AppIcon(AppIcons.star, size: size, color: color ?? scheme.outline);
+    return SizedBox.square(
+      dimension: size,
+      child: CustomPaint(painter: _StarPainter(color ?? scheme.tertiary)),
+    );
+  }
+}
+
+class _StarPainter extends CustomPainter {
+  _StarPainter(this.color);
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Five-point star with slightly rounded joins, inset to match the stroke icon's optical size.
+    final c = size.center(Offset.zero);
+    final outer = size.shortestSide * 0.46, inner = outer * 0.48;
+    final path = Path();
+    for (var i = 0; i < 10; i++) {
+      final r = i.isEven ? outer : inner;
+      final a = -math.pi / 2 + i * math.pi / 5;
+      final p = Offset(c.dx + r * math.cos(a), c.dy + r * math.sin(a));
+      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    }
+    path.close();
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.fill
+        ..strokeJoin = StrokeJoin.round,
+    );
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = size.shortestSide * 0.08
+        ..strokeJoin = StrokeJoin.round,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_StarPainter old) => old.color != color;
 }
 
 /// Parses rupees typed by a user into paise.
@@ -152,7 +212,7 @@ String paiseToRupeesText(int? paise) => paise == null ? '' : (paise / 100).toStr
 class StatTile extends StatelessWidget {
   const StatTile(this.label, this.value, this.icon, {super.key, this.color, this.onTap});
   final String label, value;
-  final IconData icon;
+  final AppIconData icon;
   final Color? color;
   final VoidCallback? onTap;
 
@@ -171,7 +231,7 @@ class StatTile extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Icon(icon, size: 18, color: accent),
+                  AppIcon(icon, size: 18, color: accent),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(label, style: Theme.of(context).textTheme.labelMedium, overflow: TextOverflow.ellipsis),
@@ -190,6 +250,77 @@ class StatTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Icon in a tinted rounded square: leading visual for settings rows and menu entries.
+class IconBadge extends StatelessWidget {
+  const IconBadge(this.icon, {super.key, this.color, this.size = 40});
+  final AppIconData icon;
+  final Color? color;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = color ?? Theme.of(context).colorScheme.primary;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: c.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(size * 0.3)),
+      alignment: Alignment.center,
+      child: AppIcon(icon, size: size * 0.5, color: c),
+    );
+  }
+}
+
+/// Grouped list of rows on a card, like a settings section.
+class MenuCard extends StatelessWidget {
+  const MenuCard({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[if (i > 0) const Divider(indent: 68, height: 1), children[i]],
+        ],
+      ),
+    );
+  }
+}
+
+/// One tappable row inside a [MenuCard].
+class MenuRow extends StatelessWidget {
+  const MenuRow({
+    super.key,
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.onTap,
+    this.trailing,
+    this.color,
+  });
+  final AppIconData icon;
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onTap;
+  final Widget? trailing;
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+      leading: IconBadge(icon, color: color),
+      title: Text(
+        title,
+        style: TextStyle(fontWeight: FontWeight.w600, color: color),
+      ),
+      subtitle: subtitle == null ? null : Text(subtitle!),
+      trailing: trailing ?? (onTap != null ? const AppIcon(AppIcons.chevronRight, size: 18) : null),
+      onTap: onTap,
     );
   }
 }

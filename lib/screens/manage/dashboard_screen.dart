@@ -5,6 +5,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 /// Owner dashboard for the last 30 days.
 class DashboardScreen extends StatefulWidget {
@@ -57,7 +58,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
-          IconButton(tooltip: 'Date range', onPressed: _pickRange, icon: const Icon(Icons.date_range)),
+          IconButton(tooltip: 'Date range', onPressed: _pickRange, icon: const AppIcon(AppIcons.calendarRange)),
           if (_range != null)
             IconButton(
               tooltip: 'Last 30 days',
@@ -65,7 +66,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 _range = null;
                 _load();
               }),
-              icon: const Icon(Icons.restart_alt),
+              icon: const AppIcon(AppIcons.refresh),
             ),
         ],
       ),
@@ -98,22 +99,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.7,
                   children: [
-                    _Stat('Bookings', '${n(bookings, 'total')}', Icons.event_available),
-                    _Stat('Booked value', formatPaise(n(money, 'booked_value_paise')), Icons.receipt_long),
-                    _Stat(
-                      'Your earnings',
-                      formatPaise(n(money, 'venue_earnings_paise')),
-                      Icons.account_balance_wallet_outlined,
-                    ),
-                    _Stat('Balance due', formatPaise(n(money, 'balance_paise')), Icons.savings_outlined),
-                    _Stat('Collected at venue', formatPaise(n(money, 'collected_at_venue_paise')), Icons.point_of_sale),
+                    _Stat('Bookings', '${n(bookings, 'total')}', AppIcons.calendarCheck),
+                    _Stat('Booked value', formatPaise(n(money, 'booked_value_paise')), AppIcons.receipt),
+                    _Stat('Your earnings', formatPaise(n(money, 'venue_earnings_paise')), AppIcons.wallet),
+                    _Stat('Balance due', formatPaise(n(money, 'balance_paise')), AppIcons.savings),
+                    _Stat('Collected at venue', formatPaise(n(money, 'collected_at_venue_paise')), AppIcons.counter),
                     _Stat(
                       'Rating',
                       ratings['average'] == null ? '—' : '${(ratings['average'] as num).toStringAsFixed(1)} ★',
-                      Icons.star_outline,
+                      AppIcons.star,
                     ),
-                    _Stat('Cancellations', '${bookings['cancellation_rate_percent'] ?? 0}%', Icons.event_busy),
-                    _Stat('No-shows', '${bookings['no_show_rate_percent'] ?? 0}%', Icons.person_off_outlined),
+                    _Stat('Cancellations', '${bookings['cancellation_rate_percent'] ?? 0}%', AppIcons.calendarOff),
+                    _Stat('No-shows', '${bookings['no_show_rate_percent'] ?? 0}%', AppIcons.userBlock),
                   ],
                 ),
                 if (courts.isNotEmpty) ...[
@@ -143,7 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 const SizedBox(height: 16),
                 Card(
                   child: ListTile(
-                    leading: const Icon(Icons.today),
+                    leading: const AppIcon(AppIcons.today),
                     title: const Text('Still to play today'),
                     trailing: Text('$todayCount', style: Theme.of(context).textTheme.titleLarge),
                   ),
@@ -160,7 +157,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 class _Stat extends StatelessWidget {
   const _Stat(this.label, this.value, this.icon);
   final String label, value;
-  final IconData icon;
+  final AppIconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +171,7 @@ class _Stat extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 18, color: scheme.primary),
+                AppIcon(icon, size: 18, color: scheme.primary),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(label, style: Theme.of(context).textTheme.labelMedium, overflow: TextOverflow.ellipsis),

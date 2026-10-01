@@ -7,6 +7,7 @@ import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_icons.dart';
 
 class RemindersScreen extends StatefulWidget {
   const RemindersScreen({super.key});
@@ -40,7 +41,7 @@ class _RemindersScreenState extends State<RemindersScreen> {
         onRetry: () => setState(_load),
         isEmpty: (r) => r.isEmpty,
         empty: const MessageView(
-          icon: Icons.alarm_off,
+          icon: AppIcons.alarmOff,
           title: 'No reminders',
           message: 'Slots that aren\'t open for booking yet show a bell. Tap one to be reminded when booking opens.',
         ),
@@ -52,14 +53,18 @@ class _RemindersScreenState extends State<RemindersScreen> {
             final r = list[i];
             return Card(
               child: ListTile(
-                leading: const Icon(Icons.alarm),
+                leading: const AppIcon(AppIcons.alarm),
                 title: Text('${r.venueName ?? 'Venue'} · ${r.courtName ?? ''}'),
                 subtitle: Text(
                   '${formatDate(r.slotStart)} at ${formatTime(r.slotStart)}\n'
                   'Opens ${DateFormat('d MMM, h:mm a').format(DateTime.parse(r.notifyAt).toLocal())}',
                 ),
                 isThreeLine: true,
-                trailing: IconButton(tooltip: 'Cancel', icon: const Icon(Icons.close), onPressed: () => _cancel(r)),
+                trailing: IconButton(
+                  tooltip: 'Cancel',
+                  icon: const AppIcon(AppIcons.close),
+                  onPressed: () => _cancel(r),
+                ),
               ),
             );
           },

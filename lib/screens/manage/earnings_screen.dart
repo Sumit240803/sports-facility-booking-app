@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 final _when = DateFormat('d MMM, h:mm a');
 
@@ -39,7 +40,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           TextButton.icon(
             onPressed: () =>
                 Navigator.push(context, MaterialPageRoute(builder: (_) => PayoutSettingsScreen(venue: widget.venue))),
-            icon: const Icon(Icons.account_balance_outlined),
+            icon: const AppIcon(AppIcons.bank),
             label: const Text('Payout details'),
           ),
         ],
@@ -92,7 +93,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 for (final p in e.payouts)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.north_east),
+                    leading: const AppIcon(AppIcons.payout),
                     title: Text(formatPaise(p.amountPaise)),
                     subtitle: Text(
                       [
@@ -111,8 +112,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 for (final l in e.ledger)
                   ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      l.amountPaise >= 0 ? Icons.add_circle_outline : Icons.remove_circle_outline,
+                    leading: AppIcon(
+                      l.amountPaise >= 0 ? AppIcons.addCircle : AppIcons.removeCircle,
                       color: l.amountPaise >= 0 ? scheme.primary : scheme.error,
                     ),
                     title: Text(l.description.isEmpty ? titleCase(l.type) : l.description),
@@ -220,7 +221,7 @@ class _PayoutSettingsScreenState extends State<PayoutSettingsScreen> {
             children: [
               Card(
                 child: ListTile(
-                  leading: Icon(s.mode == 'route' ? Icons.autorenew : Icons.handshake_outlined),
+                  leading: AppIcon(s.mode == 'route' ? AppIcons.refresh : AppIcons.handshake),
                   title: Text(s.mode == 'route' ? 'Automatic daily payouts' : 'Manual payouts'),
                   subtitle: Text(
                     s.mode == 'route'
@@ -232,8 +233,8 @@ class _PayoutSettingsScreenState extends State<PayoutSettingsScreen> {
               const SizedBox(height: 16),
               SegmentedButton<bool>(
                 segments: const [
-                  ButtonSegment(value: false, label: Text('Bank account'), icon: Icon(Icons.account_balance)),
-                  ButtonSegment(value: true, label: Text('UPI'), icon: Icon(Icons.qr_code)),
+                  ButtonSegment(value: false, label: Text('Bank account'), icon: AppIcon(AppIcons.bank)),
+                  ButtonSegment(value: true, label: Text('UPI'), icon: AppIcon(AppIcons.qr)),
                 ],
                 selected: {_useUpi},
                 onSelectionChanged: (v) => setState(() => _useUpi = v.first),

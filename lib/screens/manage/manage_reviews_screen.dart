@@ -5,6 +5,7 @@ import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import '../reviews.dart';
+import '../../widgets/app_icons.dart';
 
 class ManageReviewsScreen extends StatefulWidget {
   const ManageReviewsScreen({super.key, required this.venue});
@@ -51,7 +52,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
         future: _page,
         onRetry: () => setState(_load),
         isEmpty: (p) => p.reviews.isEmpty,
-        empty: const MessageView(icon: Icons.reviews_outlined, title: 'No reviews yet'),
+        empty: const MessageView(icon: AppIcons.review, title: 'No reviews yet'),
         builder: (context, page) => ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
@@ -66,7 +67,7 @@ class _ManageReviewsScreenState extends State<ManageReviewsScreen> {
                 trailing: widget.venue.canEdit
                     ? IconButton(
                         tooltip: r.ownerReply == null ? 'Reply' : 'Edit reply',
-                        icon: const Icon(Icons.reply),
+                        icon: const AppIcon(AppIcons.reply),
                         onPressed: () => _reply(r),
                       )
                     : null,

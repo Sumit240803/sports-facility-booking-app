@@ -84,9 +84,12 @@ class PublicVenue {
       rules = j['rules'],
       courts = _list(j['courts'], Court.new),
       photos = _list(j['photos'], Photo.new),
+      lat = (j['lat'] as num?)?.toDouble(),
+      lng = (j['lng'] as num?)?.toDouble(),
       ratingAvg = (j['rating_avg'] as num?)?.toDouble(),
       ratingCount = j['rating_count'] ?? 0;
   final String id, slug, name, address;
+  final double? lat, lng;
   final String? description, phone, rules;
   final List<String> amenities, sports;
   final List<Court> courts;

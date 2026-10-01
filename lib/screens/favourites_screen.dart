@@ -7,6 +7,7 @@ import '../widgets/common.dart';
 import 'explore_screen.dart';
 import 'venue_detail_screen.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_icons.dart';
 
 class FavouritesScreen extends StatefulWidget {
   const FavouritesScreen({super.key});
@@ -41,7 +42,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
         onRetry: () => setState(_load),
         isEmpty: (f) => f.isEmpty,
         empty: const MessageView(
-          icon: Icons.favorite_border,
+          icon: AppIcons.favourite,
           title: 'No favourites yet',
           message: 'Tap the heart on a venue to save it here.',
         ),
@@ -69,7 +70,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 subtitle: Text(f.available ? f.place : 'Currently unavailable'),
                 trailing: IconButton(
                   tooltip: 'Remove',
-                  icon: Icon(Icons.favorite, color: scheme.error),
+                  icon: AppIcon(AppIcons.favourite, color: scheme.error),
                   onPressed: () => _remove(f),
                 ),
               ),

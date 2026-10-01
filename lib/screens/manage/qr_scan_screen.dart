@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../widgets/app_icons.dart';
+
 /// Scans a booking QR code and pops its text (the booking reference).
 class QrScanScreen extends StatefulWidget {
   const QrScanScreen({super.key});
@@ -36,11 +38,7 @@ class _QrScanScreenState extends State<QrScanScreen> {
         foregroundColor: Colors.white,
         title: const Text('Scan booking QR'),
         actions: [
-          IconButton(
-            tooltip: 'Torch',
-            onPressed: _controller.toggleTorch,
-            icon: const Icon(Icons.flashlight_on_outlined),
-          ),
+          IconButton(tooltip: 'Torch', onPressed: _controller.toggleTorch, icon: const AppIcon(AppIcons.flashlight)),
         ],
       ),
       body: Stack(

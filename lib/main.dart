@@ -5,6 +5,7 @@ import 'core/api_client.dart';
 import 'core/profile_store.dart';
 import 'core/push_service.dart';
 import 'core/session.dart';
+import 'core/theme_controller.dart';
 import 'data/easyplay_api.dart';
 import 'login.dart';
 import 'screens/home_shell.dart';
@@ -14,13 +15,16 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final session = Session();
   await session.load();
+  final theme = ThemeController();
+  await theme.load();
   await PushService.initFirebase();
-  runApp(MainApp(session: session));
+  runApp(MainApp(session: session, theme: theme));
 }
 
 class MainApp extends StatefulWidget {
-  const MainApp({super.key, required this.session});
+  const MainApp({super.key, required this.session, required this.theme});
   final Session session;
+  final ThemeController theme;
 
   @override
   State<MainApp> createState() => _MainAppState();
@@ -39,18 +43,22 @@ class _MainAppState extends State<MainApp> {
       api: api,
       profile: profile,
       push: push,
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        scaffoldMessengerKey: messengerKey,
-        title: 'EasyPlay',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.light(),
-        darkTheme: AppTheme.dark(),
-        themeMode: ThemeMode.system,
-        home: ListenableBuilder(
-          listenable: session,
-          // Keyed by token presence so a new sign-in gets a fresh shell (and profile load).
-          builder: (context, _) => session.isSignedIn ? const HomeShell(key: ValueKey('shell')) : const LoginScreen(),
+      theme: widget.theme,
+      child: ListenableBuilder(
+        listenable: widget.theme,
+        builder: (context, _) => MaterialApp(
+          navigatorKey: navigatorKey,
+          scaffoldMessengerKey: messengerKey,
+          title: 'EasyPlay',
+          debugShowCheckedModeBanner: false,
+          theme: AppTheme.light(),
+          darkTheme: AppTheme.dark(),
+          themeMode: widget.theme.mode,
+          home: ListenableBuilder(
+            listenable: session,
+            // Keyed by token presence so a new sign-in gets a fresh shell (and profile load).
+            builder: (context, _) => session.isSignedIn ? const HomeShell(key: ValueKey('shell')) : const LoginScreen(),
+          ),
         ),
       ),
     );

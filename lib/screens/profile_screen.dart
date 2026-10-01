@@ -4,17 +4,28 @@ import 'package:flutter/material.dart';
 import '../app_scope.dart';
 import '../core/format.dart';
 import '../data/models.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_icons.dart';
+import '../widgets/common.dart';
 import 'favourites_screen.dart';
 import 'manage/my_venues_screen.dart';
 import 'my_reviews_screen.dart';
 import 'owner_application_screen.dart';
-import '../widgets/common.dart';
 import 'reminders_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   Future<void> _logout(BuildContext context) async {
+    if (!await confirm(
+      context,
+      'Sign out?',
+      message: 'You can sign back in with Google any time.',
+      action: 'Sign out',
+    )) {
+      return;
+    }
+    if (!context.mounted) return;
     final session = context.session;
     final api = context.api;
     await context.push.stop();
@@ -30,157 +41,238 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final text = Theme.of(context).textTheme;
     final store = context.profileStore;
+    final theme = context.themeController;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Profile')),
       body: ListenableBuilder(
-        listenable: store,
+        listenable: Listenable.merge([store, theme]),
         builder: (context, _) {
           final p = store.profile!;
-          final name = p.fullName ?? p.email ?? 'Player';
           return RefreshIndicator(
             onRefresh: store.load,
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 32),
               children: [
-                Center(
-                  child: CircleAvatar(
-                    radius: 44,
-                    backgroundColor: scheme.primaryContainer,
-                    foregroundImage: p.avatarUrl != null ? CachedNetworkImageProvider(p.avatarUrl!) : null,
-                    child: Text(
-                      name.characters.first.toUpperCase(),
-                      style: text.headlineMedium?.copyWith(color: scheme.onPrimaryContainer),
+                _ProfileHeader(
+                  profile: p,
+                  onEdit: () async {
+                    final updated = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(builder: (_) => EditProfileScreen(profile: p)),
+                    );
+                    if (updated == true) store.load();
+                  },
+                ),
+
+                const SectionTitle('Activity'),
+                MenuCard(
+                  children: [
+                    MenuRow(
+                      icon: AppIcons.favourite,
+                      title: 'Favourites',
+                      subtitle: 'Venues you saved',
+                      color: AppColors.danger,
+                      onTap: () => _push(context, const FavouritesScreen()),
                     ),
-                  ),
+                    MenuRow(
+                      icon: AppIcons.writeReview,
+                      title: 'My reviews',
+                      subtitle: 'Ratings you have given',
+                      color: AppColors.pending,
+                      onTap: () => _push(context, const MyReviewsScreen()),
+                    ),
+                    MenuRow(
+                      icon: AppIcons.alarm,
+                      title: 'Slot reminders',
+                      subtitle: 'Get notified when booking opens',
+                      onTap: () => _push(context, const RemindersScreen()),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  name,
-                  textAlign: TextAlign.center,
-                  style: text.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                if (p.email != null)
-                  Text(
-                    p.email!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: scheme.onSurfaceVariant),
-                  ),
-                const SizedBox(height: 4),
-                Center(
-                  child: Chip(label: Text(titleCase(p.role)), visualDensity: VisualDensity.compact),
-                ),
-                const SizedBox(height: 16),
-                Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.phone_outlined),
-                        title: const Text('Phone'),
-                        subtitle: Text(p.phone ?? 'Not set'),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.location_city),
-                        title: const Text('City'),
-                        subtitle: Text(p.city ?? 'Not set'),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.sports_soccer),
-                        title: const Text('Favourite sports'),
-                        subtitle: Text(
-                          p.preferredSports.isEmpty ? 'Not set' : p.preferredSports.map(titleCase).join(', '),
-                        ),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.edit_outlined),
-                        title: const Text('Edit profile'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () async {
-                          final updated = await Navigator.push<bool>(
-                            context,
-                            MaterialPageRoute(builder: (_) => EditProfileScreen(profile: p)),
-                          );
-                          if (updated == true) store.load();
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Card(
-                  child: Column(
-                    children: [
-                      SwitchListTile(
-                        secondary: const Icon(Icons.notifications_active_outlined),
-                        title: const Text('Push notifications'),
-                        subtitle: const Text('Bookings, reminders and updates on this phone'),
+
+                const SectionTitle('Notifications'),
+                MenuCard(
+                  children: [
+                    MenuRow(
+                      icon: AppIcons.notification,
+                      title: 'Push notifications',
+                      subtitle: 'Bookings, reminders and updates',
+                      trailing: Switch(
                         value: p.notifyPush,
                         onChanged: (v) =>
                             runAction(context, () async => store.set(await context.api.setNotificationPrefs(push: v))),
                       ),
-                      SwitchListTile(
-                        secondary: const Icon(Icons.mail_outline),
-                        title: const Text('Email notifications'),
+                    ),
+                    MenuRow(
+                      icon: AppIcons.mail,
+                      title: 'Email notifications',
+                      subtitle: p.email,
+                      trailing: Switch(
                         value: p.notifyEmail,
                         onChanged: (v) =>
                             runAction(context, () async => store.set(await context.api.setNotificationPrefs(email: v))),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 12),
+
+                const SectionTitle('Appearance'),
                 Card(
-                  child: Column(
-                    children: [
-                      ListTile(
-                        leading: const Icon(Icons.favorite_border),
-                        title: const Text('Favourites'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(context, const FavouritesScreen()),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.rate_review_outlined),
-                        title: const Text('My reviews'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(context, const MyReviewsScreen()),
-                      ),
-                      ListTile(
-                        leading: const Icon(Icons.alarm),
-                        title: const Text('Slot reminders'),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => _push(context, const RemindersScreen()),
-                      ),
-                      if (p.role == 'player') ...[
-                        ListTile(
-                          leading: const Icon(Icons.badge_outlined),
-                          title: const Text('Venues I work at'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _push(context, const MyVenuesScreen(standalone: true)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: SegmentedButton<ThemeMode>(
+                      showSelectedIcon: false,
+                      segments: const [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          icon: AppIcon(AppIcons.phoneTheme, size: 18),
+                          label: Text('System'),
                         ),
-                        ListTile(
-                          leading: const Icon(Icons.add_business_outlined),
-                          title: const Text('List your venue'),
-                          subtitle: const Text('Apply to become a venue owner'),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: () => _push(context, const OwnerApplicationScreen()),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          icon: AppIcon(AppIcons.sun, size: 18),
+                          label: Text('Light'),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          icon: AppIcon(AppIcons.moon, size: 18),
+                          label: Text('Dark'),
                         ),
                       ],
-                    ],
+                      selected: {theme.mode},
+                      onSelectionChanged: (s) => theme.set(s.first),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                OutlinedButton.icon(
-                  onPressed: () => _logout(context),
-                  icon: const Icon(Icons.logout),
-                  label: const Text('Sign out'),
+
+                if (p.role == 'player') ...[
+                  const SectionTitle('For venues'),
+                  MenuCard(
+                    children: [
+                      MenuRow(
+                        icon: AppIcons.addVenue,
+                        title: 'List your venue',
+                        subtitle: 'Own a turf or court? Apply to become a partner',
+                        onTap: () => _push(context, const OwnerApplicationScreen()),
+                      ),
+                      MenuRow(
+                        icon: AppIcons.idCard,
+                        title: 'Venues I work at',
+                        subtitle: 'Front desk access from venue owners',
+                        onTap: () => _push(context, const MyVenuesScreen(standalone: true)),
+                      ),
+                    ],
+                  ),
+                ],
+
+                const SizedBox(height: 24),
+                MenuCard(
+                  children: [
+                    MenuRow(
+                      icon: AppIcons.logout,
+                      title: 'Sign out',
+                      color: Theme.of(context).colorScheme.error,
+                      onTap: () => _logout(context),
+                    ),
+                  ],
                 ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.profile, required this.onEdit});
+  final Profile profile;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final text = Theme.of(context).textTheme;
+    final p = profile;
+    final name = p.fullName ?? p.email ?? 'Player';
+
+    Widget fact(AppIconData icon, String value) => Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        AppIcon(icon, size: 16, color: scheme.onPrimaryContainer),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(color: scheme.onPrimaryContainer),
+          ),
+        ),
+      ],
+    );
+
+    return Card(
+      color: scheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: scheme.primary,
+                  foregroundImage: p.avatarUrl != null ? CachedNetworkImageProvider(p.avatarUrl!) : null,
+                  child: Text(
+                    name.characters.first.toUpperCase(),
+                    style: text.headlineSmall?.copyWith(color: scheme.onPrimary),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        style: text.titleLarge?.copyWith(color: scheme.onPrimaryContainer),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: scheme.onPrimaryContainer.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          titleCase(p.role),
+                          style: text.labelMedium?.copyWith(color: scheme.onPrimaryContainer),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton.filledTonal(tooltip: 'Edit profile', onPressed: onEdit, icon: const AppIcon(AppIcons.edit)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              children: [
+                if (p.phone != null) fact(AppIcons.phone, p.phone!),
+                if (p.city != null) fact(AppIcons.location, p.city!),
+                if (p.preferredSports.isNotEmpty) fact(AppIcons.racket, p.preferredSports.map(titleCase).join(', ')),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -244,7 +336,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         children: [
           TextField(
             controller: _name,
-            decoration: const InputDecoration(labelText: 'Full name', prefixIcon: Icon(Icons.person_outline)),
+            decoration: const InputDecoration(labelText: 'Full name', prefixIcon: AppIcon(AppIcons.user)),
           ),
           const SizedBox(height: 12),
           TextField(
@@ -253,13 +345,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             decoration: const InputDecoration(
               labelText: 'Phone',
               hintText: '+919876543210',
-              prefixIcon: Icon(Icons.phone_outlined),
+              prefixIcon: AppIcon(AppIcons.phone),
             ),
           ),
           const SizedBox(height: 12),
           TextField(
             controller: _city,
-            decoration: const InputDecoration(labelText: 'City', prefixIcon: Icon(Icons.location_city)),
+            decoration: const InputDecoration(labelText: 'City', prefixIcon: AppIcon(AppIcons.city)),
           ),
           const SizedBox(height: 20),
           Text('Favourite sports', style: Theme.of(context).textTheme.titleSmall),

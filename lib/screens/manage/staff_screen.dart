@@ -5,6 +5,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 class StaffScreen extends StatefulWidget {
   const StaffScreen({super.key, required this.venue});
@@ -55,7 +56,7 @@ class _StaffScreenState extends State<StaffScreen> {
       floatingActionButton: isOwner
           ? FloatingActionButton.extended(
               onPressed: _invite,
-              icon: const Icon(Icons.person_add),
+              icon: const AppIcon(AppIcons.userAdd),
               label: const Text('Invite'),
             )
           : null,
@@ -64,7 +65,7 @@ class _StaffScreenState extends State<StaffScreen> {
         onRetry: () => setState(_load),
         isEmpty: (d) => d.$1.isEmpty && d.$2.isEmpty,
         empty: const MessageView(
-          icon: Icons.group_outlined,
+          icon: AppIcons.users,
           title: 'No staff yet',
           message: 'Managers can edit courts, hours and prices. Staff handle the front desk.',
         ),
@@ -78,16 +79,18 @@ class _StaffScreenState extends State<StaffScreen> {
                 title: Text(m.name),
                 subtitle: Text('${titleCase(m.role)}${m.email != null ? ' · ${m.email}' : ''}'),
                 trailing: isOwner
-                    ? IconButton(icon: const Icon(Icons.person_remove_outlined), onPressed: () => _remove(m))
+                    ? IconButton(icon: const AppIcon(AppIcons.userRemove), onPressed: () => _remove(m))
                     : null,
               ),
             if (d.$2.isNotEmpty) const SectionTitle('Pending invites'),
             for (final i in d.$2)
               ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.mail_outline)),
+                leading: const CircleAvatar(child: AppIcon(AppIcons.mail)),
                 title: Text(i.email),
                 subtitle: Text('${titleCase(i.role)} · joins on first sign-in'),
-                trailing: isOwner ? IconButton(icon: const Icon(Icons.close), onPressed: () => _cancelInvite(i)) : null,
+                trailing: isOwner
+                    ? IconButton(icon: const AppIcon(AppIcons.close), onPressed: () => _cancelInvite(i))
+                    : null,
               ),
           ],
         ),

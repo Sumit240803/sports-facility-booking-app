@@ -4,6 +4,7 @@ import '../app_scope.dart';
 import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
+import '../widgets/app_icons.dart';
 
 /// Apply to list venues, or see the status of an existing application.
 class OwnerApplicationScreen extends StatefulWidget {
@@ -77,9 +78,9 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
 
   Widget _status(OwnerApplication app) {
     final (icon, title, message) = switch (app.status) {
-      'approved' => (Icons.verified, 'You\'re approved!', 'Tap "Refresh my access" to unlock the Manage tab.'),
-      'rejected' => (Icons.cancel_outlined, 'Application rejected', app.rejectionReason ?? 'No reason given.'),
-      _ => (Icons.hourglass_top, 'Application under review', 'We\'ll notify you once an admin reviews it.'),
+      'approved' => (AppIcons.verified, 'You\'re approved!', 'Tap "Refresh my access" to unlock the Manage tab.'),
+      'rejected' => (AppIcons.cancel, 'Application rejected', app.rejectionReason ?? 'No reason given.'),
+      _ => (AppIcons.hourglass, 'Application under review', 'We\'ll notify you once an admin reviews it.'),
     };
     return ListView(
       padding: const EdgeInsets.all(24),
@@ -126,7 +127,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
             controller: _business,
             textCapitalization: TextCapitalization.words,
             validator: (v) => (v ?? '').trim().isEmpty ? 'Required' : null,
-            decoration: const InputDecoration(labelText: 'Business name', prefixIcon: Icon(Icons.business)),
+            decoration: const InputDecoration(labelText: 'Business name', prefixIcon: AppIcon(AppIcons.business)),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -135,7 +136,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
             validator: (v) => RegExp(r'^\+[1-9]\d{7,14}$').hasMatch((v ?? '').replaceAll(' ', ''))
                 ? null
                 : 'Use international format, e.g. +919876543210',
-            decoration: const InputDecoration(labelText: 'Business phone', prefixIcon: Icon(Icons.phone_outlined)),
+            decoration: const InputDecoration(labelText: 'Business phone', prefixIcon: AppIcon(AppIcons.phone)),
           ),
           const SizedBox(height: 12),
           TextFormField(
@@ -146,7 +147,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
               if (s.isEmpty) return null;
               return RegExp(r'^\d{2}[A-Z]{5}\d{4}[A-Z][1-9A-Z]Z[0-9A-Z]$').hasMatch(s) ? null : 'Invalid GSTIN';
             },
-            decoration: const InputDecoration(labelText: 'GSTIN (optional)', prefixIcon: Icon(Icons.receipt_long)),
+            decoration: const InputDecoration(labelText: 'GSTIN (optional)', prefixIcon: AppIcon(AppIcons.receipt)),
           ),
           const SizedBox(height: 24),
           FilledButton(onPressed: _busy ? null : _submit, child: Text(reapplying ? 'Re-apply' : 'Submit application')),

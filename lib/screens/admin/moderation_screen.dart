@@ -5,6 +5,7 @@ import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import '../reviews.dart';
+import '../../widgets/app_icons.dart';
 
 /// Hide or restore player reviews. Hidden reviews don't count toward ratings.
 class ModerationScreen extends StatefulWidget {
@@ -73,7 +74,7 @@ class _ModerationScreenState extends State<ModerationScreen> {
                 empty: ListView(
                   children: const [
                     SizedBox(height: 60),
-                    MessageView(icon: Icons.reviews_outlined, title: 'No reviews here'),
+                    MessageView(icon: AppIcons.review, title: 'No reviews here'),
                   ],
                 ),
                 builder: (context, list) => ListView.separated(

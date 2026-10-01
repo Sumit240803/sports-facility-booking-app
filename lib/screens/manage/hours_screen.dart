@@ -4,6 +4,7 @@ import '../../app_scope.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const dayShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -165,7 +166,7 @@ class _HoursScreenState extends State<HoursScreen> {
         floatingActionButton: canEdit
             ? FloatingActionButton.extended(
                 onPressed: () => _addRange(),
-                icon: const Icon(Icons.add),
+                icon: const AppIcon(AppIcons.add),
                 label: const Text('Add hours'),
               )
             : null,
@@ -212,7 +213,7 @@ class _HoursScreenState extends State<HoursScreen> {
                       ),
                       trailing: canEdit
                           ? IconButton(
-                              icon: const Icon(Icons.add),
+                              icon: const AppIcon(AppIcons.add),
                               onPressed: () => _addRange(days: [d]),
                             )
                           : null,

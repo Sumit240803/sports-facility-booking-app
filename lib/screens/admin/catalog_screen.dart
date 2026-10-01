@@ -4,6 +4,7 @@ import '../../app_scope.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 /// Sports and amenities offered to owners (courts, venue amenities) and players (filters).
 class CatalogScreen extends StatelessWidget {
@@ -123,7 +124,7 @@ class _CatalogListState extends State<_CatalogList> with AutomaticKeepAliveClien
                   subtitle: Text(item.id),
                   value: item.isActive,
                   onChanged: (v) => _toggle(item, v),
-                  secondary: IconButton(icon: const Icon(Icons.edit_outlined), onPressed: () => _rename(item)),
+                  secondary: IconButton(icon: const AppIcon(AppIcons.edit), onPressed: () => _rename(item)),
                 ),
             ],
           ),
@@ -133,7 +134,7 @@ class _CatalogListState extends State<_CatalogList> with AutomaticKeepAliveClien
             child: FloatingActionButton.extended(
               heroTag: widget.table,
               onPressed: () => _add(items),
-              icon: const Icon(Icons.add),
+              icon: const AppIcon(AppIcons.add),
               label: Text('Add $_noun'),
             ),
           ),

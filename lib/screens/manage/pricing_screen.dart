@@ -6,6 +6,7 @@ import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import 'hours_screen.dart';
+import '../../widgets/app_icons.dart';
 
 /// Base price + peak/off-peak rules for one court.
 class PricingScreen extends StatefulWidget {
@@ -100,7 +101,7 @@ class _PricingScreenState extends State<PricingScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _addRule,
-        icon: const Icon(Icons.add),
+        icon: const AppIcon(AppIcons.add),
         label: const Text('Add rule'),
       ),
       body: AsyncView<List<PriceRule>>(
@@ -113,7 +114,7 @@ class _PricingScreenState extends State<PricingScreen> {
             children: [
               Card(
                 child: ListTile(
-                  leading: const Icon(Icons.currency_rupee),
+                  leading: const AppIcon(AppIcons.rupee),
                   title: const Text('Base price'),
                   subtitle: const Text('Used whenever no rule below matches'),
                   trailing: Text(
@@ -135,11 +136,11 @@ class _PricingScreenState extends State<PricingScreen> {
                 Card(
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
-                    leading: Icon(r.date != null ? Icons.event : Icons.repeat),
+                    leading: AppIcon(r.date != null ? AppIcons.calendar : AppIcons.repeat),
                     title: Text('${formatPaise(r.pricePerHourPaise)}/hr'),
                     subtitle: Text(_describe(r)),
                     trailing: IconButton(
-                      icon: const Icon(Icons.delete_outline),
+                      icon: const AppIcon(AppIcons.delete),
                       onPressed: () => setState(() {
                         rules.remove(r);
                         _dirty = true;
@@ -196,8 +197,8 @@ class _RuleSheetState extends State<_RuleSheet> {
           const SizedBox(height: 12),
           SegmentedButton<bool>(
             segments: const [
-              ButtonSegment(value: true, label: Text('Weekly'), icon: Icon(Icons.repeat)),
-              ButtonSegment(value: false, label: Text('One date'), icon: Icon(Icons.event)),
+              ButtonSegment(value: true, label: Text('Weekly'), icon: AppIcon(AppIcons.repeat)),
+              ButtonSegment(value: false, label: Text('One date'), icon: AppIcon(AppIcons.calendar)),
             ],
             selected: {_weekly},
             onSelectionChanged: (s) => setState(() => _weekly = s.first),
@@ -217,7 +218,7 @@ class _RuleSheetState extends State<_RuleSheet> {
             )
           else
             OutlinedButton.icon(
-              icon: const Icon(Icons.calendar_today),
+              icon: const AppIcon(AppIcons.calendar),
               label: Text(formatDate(_date.toIso8601String())),
               onPressed: () async {
                 final d = await showDatePicker(

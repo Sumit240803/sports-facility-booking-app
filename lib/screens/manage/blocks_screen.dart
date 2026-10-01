@@ -5,6 +5,7 @@ import '../../app_scope.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 final _fmt = DateFormat('EEE d MMM, h:mm a');
 
@@ -56,7 +57,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
         floatingActionButton: snap.hasData
             ? FloatingActionButton.extended(
                 onPressed: () => _add(snap.data!.$2),
-                icon: const Icon(Icons.add),
+                icon: const AppIcon(AppIcons.add),
                 label: const Text('Block time'),
               )
             : null,
@@ -65,7 +66,7 @@ class _BlocksScreenState extends State<BlocksScreen> {
           onRetry: () => setState(_load),
           isEmpty: (d) => d.$1.isEmpty,
           empty: const MessageView(
-            icon: Icons.event_available,
+            icon: AppIcons.calendarCheck,
             title: 'Nothing blocked',
             message: 'Block a court for maintenance or a private event, or close the whole venue for a holiday.',
           ),
@@ -79,14 +80,14 @@ class _BlocksScreenState extends State<BlocksScreen> {
                 final b = d.$1[i];
                 return Card(
                   child: ListTile(
-                    leading: Icon(b.courtId == null ? Icons.store : Icons.block),
+                    leading: AppIcon(b.courtId == null ? AppIcons.manage : AppIcons.block),
                     title: Text(b.courtId == null ? 'Whole venue closed' : courtNames[b.courtId] ?? 'Court'),
                     subtitle: Text(
                       '${_fmt.format(DateTime.parse(b.startsAt).toLocal())}\n→ ${_fmt.format(DateTime.parse(b.endsAt).toLocal())}'
                       '${b.reason != null ? '\n${b.reason}' : ''}',
                     ),
                     isThreeLine: true,
-                    trailing: IconButton(icon: const Icon(Icons.delete_outline), onPressed: () => _delete(b)),
+                    trailing: IconButton(icon: const AppIcon(AppIcons.delete), onPressed: () => _delete(b)),
                   ),
                 );
               },
@@ -181,7 +182,7 @@ class _BlockSheetState extends State<_BlockSheet> {
           const SizedBox(height: 12),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.play_arrow_outlined),
+            leading: const AppIcon(AppIcons.play),
             title: const Text('From'),
             subtitle: Text(_fmt.format(_start)),
             onTap: () async {
@@ -196,7 +197,7 @@ class _BlockSheetState extends State<_BlockSheet> {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.stop_outlined),
+            leading: const AppIcon(AppIcons.stop),
             title: const Text('Until'),
             subtitle: Text(_fmt.format(_end)),
             onTap: () async {

@@ -6,6 +6,7 @@ import '../app_scope.dart';
 import '../data/models.dart';
 import '../widgets/async_view.dart';
 import '../widgets/common.dart';
+import '../widgets/app_icons.dart';
 
 /// Rating summary + latest reviews, shown on the venue page.
 class VenueReviewsSection extends StatefulWidget {
@@ -213,7 +214,7 @@ class _AllReviewsScreenState extends State<AllReviewsScreen> {
         title: Text(widget.venueName),
         actions: [
           PopupMenuButton<String>(
-            icon: const Icon(Icons.sort),
+            icon: const AppIcon(AppIcons.sort),
             initialValue: _sort,
             onSelected: (s) => setState(() {
               _sort = s;
@@ -292,7 +293,6 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Padding(
       padding: EdgeInsets.fromLTRB(20, 0, 20, 20 + MediaQuery.viewInsetsOf(context).bottom),
       child: Column(
@@ -311,7 +311,7 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
                 IconButton(
                   iconSize: 40,
                   onPressed: () => setState(() => _rating = i),
-                  icon: Icon(i <= _rating ? Icons.star_rounded : Icons.star_outline_rounded, color: scheme.tertiary),
+                  icon: RatingStar(filled: i <= _rating, size: 40),
                 ),
             ],
           ),

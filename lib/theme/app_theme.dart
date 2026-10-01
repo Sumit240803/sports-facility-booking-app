@@ -35,7 +35,8 @@ abstract final class AppTheme {
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: scheme.surfaceContainerLow,
+        // Cards need a little more lift on dark backgrounds to stay distinct.
+        color: brightness == Brightness.dark ? scheme.surfaceContainer : scheme.surfaceContainerLow,
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(borderRadius: radius),

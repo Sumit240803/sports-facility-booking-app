@@ -6,6 +6,7 @@ import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import '../explore_screen.dart';
 import '../manage/venue_manage_screen.dart';
+import '../../widgets/app_icons.dart';
 
 /// Admin review queues: owner applications and venues.
 class AdminQueuesScreen extends StatelessWidget {
@@ -106,7 +107,7 @@ class _OwnerApplicationsState extends State<_OwnerApplications> with AutomaticKe
               empty: ListView(
                 children: const [
                   SizedBox(height: 60),
-                  MessageView(icon: Icons.inbox_outlined, title: 'Nothing here'),
+                  MessageView(icon: AppIcons.inbox, title: 'Nothing here'),
                 ],
               ),
               builder: (context, apps) => ListView.separated(
@@ -244,7 +245,7 @@ class _VenueListState extends State<_VenueList> with AutomaticKeepAliveClientMix
               empty: ListView(
                 children: const [
                   SizedBox(height: 60),
-                  MessageView(icon: Icons.inbox_outlined, title: 'Nothing here'),
+                  MessageView(icon: AppIcons.inbox, title: 'Nothing here'),
                 ],
               ),
               builder: (context, venues) => ListView.separated(

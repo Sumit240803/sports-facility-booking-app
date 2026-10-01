@@ -9,6 +9,12 @@ import '../theme/app_theme.dart';
 import '../widgets/async_view.dart';
 import 'reviews.dart';
 import '../widgets/skeleton.dart';
+import '../widgets/app_icons.dart';
+import '../core/sport_icons.dart';
+
+import 'package:url_launcher/url_launcher.dart';
+
+import '../widgets/common.dart';
 
 class BookingsScreen extends StatelessWidget {
   const BookingsScreen({super.key});
@@ -87,7 +93,7 @@ class _BookingListState extends State<_BookingList> with AutomaticKeepAliveClien
           children: [
             const SizedBox(height: 80),
             MessageView(
-              icon: Icons.event_available,
+              icon: AppIcons.calendarCheck,
               title: widget.scope == 'upcoming' ? 'No upcoming bookings' : 'No past bookings',
               message: widget.scope == 'upcoming' ? 'Find a court on the Explore tab.' : null,
             ),
@@ -122,29 +128,81 @@ class _BookingCard extends StatelessWidget {
           );
           if (changed == true) onChanged();
         },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              _DateBadge(iso: booking.startsAt),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(booking.venueName ?? 'Venue', style: text.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                    Text(
-                      '${booking.courtName ?? ''} · ${formatTime(booking.startsAt)} – ${formatTime(booking.endsAt)}',
-                      style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _DateBadge(iso: booking.startsAt),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                booking.venueName ?? 'Venue',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: text.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                            StatusChip(status: booking.status),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        _Line(
+                          icon: sportIcon(booking.sportId),
+                          text: [
+                            booking.courtName,
+                            if (booking.sportId != null) titleCase(booking.sportId!),
+                          ].whereType<String>().join(' · '),
+                        ),
+                        const SizedBox(height: 4),
+                        _Line(
+                          icon: AppIcons.clock,
+                          text:
+                              '${_relativeDay(booking.startsAt)} · ${formatTime(booking.startsAt)} – ${formatTime(booking.endsAt)}',
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 8),
-                    StatusChip(status: booking.status),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Text(formatPaise(booking.totalPaise), style: text.titleMedium),
-            ],
-          ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: booking.awaitingPayment ? AppColors.pending.withValues(alpha: 0.12) : scheme.surfaceContainer,
+              ),
+              child: Row(
+                children: [
+                  AppIcon(
+                    booking.awaitingPayment ? AppIcons.hourglass : AppIcons.receipt,
+                    size: 16,
+                    color: booking.awaitingPayment ? AppColors.pending : scheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      booking.awaitingPayment
+                          ? 'Payment pending: tap to pay and confirm'
+                          : '${booking.reference} · ${titleCase(booking.paymentMethod)}',
+                      style: text.labelMedium?.copyWith(
+                        color: booking.awaitingPayment ? AppColors.pending : scheme.onSurfaceVariant,
+                        fontWeight: booking.awaitingPayment ? FontWeight.w700 : null,
+                      ),
+                    ),
+                  ),
+                  Text(formatPaise(booking.totalPaise), style: text.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -225,7 +283,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        icon: const Icon(Icons.event_busy),
+        icon: const AppIcon(AppIcons.calendarOff),
         title: const Text('Cancel booking?'),
         content: Text(
           refund != null && b.paymentStatus == 'paid'
@@ -306,33 +364,32 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              Card(
-                child: Column(
-                  children: [
-                    ListTile(
-                      leading: const Icon(Icons.stadium_outlined),
-                      title: Text(b.venueName ?? ''),
-                      subtitle: Text(b.venueCity ?? ''),
+              MenuCard(
+                children: [
+                  MenuRow(icon: AppIcons.venue, title: b.venueName ?? 'Venue', subtitle: b.venueCity),
+                  MenuRow(
+                    icon: sportIcon(b.sportId),
+                    title: b.courtName ?? 'Court',
+                    subtitle: titleCase(b.sportId ?? ''),
+                  ),
+                  MenuRow(
+                    icon: AppIcons.calendar,
+                    title: '${_relativeDay(b.startsAt)}, ${formatDate(b.startsAt)}',
+                    subtitle: '${formatTime(b.startsAt)} – ${formatTime(b.endsAt)} · ${b.durationMinutes} min',
+                  ),
+                  MenuRow(
+                    icon: AppIcons.cash,
+                    title: formatPaise(b.totalPaise),
+                    subtitle: '${titleCase(b.paymentMethod)} · ${titleCase(b.paymentStatus)}',
+                  ),
+                  if (b.venuePhone != null)
+                    MenuRow(
+                      icon: AppIcons.phone,
+                      title: 'Call venue',
+                      subtitle: b.venuePhone,
+                      onTap: () => launchUrl(Uri(scheme: 'tel', path: b.venuePhone)),
                     ),
-                    ListTile(
-                      leading: const Icon(Icons.sports),
-                      title: Text(b.courtName ?? ''),
-                      subtitle: Text(titleCase(b.sportId ?? '')),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.schedule),
-                      title: Text(formatDate(b.startsAt)),
-                      subtitle: Text('${formatTime(b.startsAt)} – ${formatTime(b.endsAt)} (${b.durationMinutes} min)'),
-                    ),
-                    ListTile(
-                      leading: const Icon(Icons.payments_outlined),
-                      title: Text(formatPaise(b.totalPaise)),
-                      subtitle: Text('${titleCase(b.paymentMethod)} · ${titleCase(b.paymentStatus)}'),
-                    ),
-                    if (b.venuePhone != null)
-                      ListTile(leading: const Icon(Icons.call_outlined), title: Text(b.venuePhone!)),
-                  ],
-                ),
+                ],
               ),
               const SizedBox(height: 24),
               if (b.awaitingPayment) ...[
@@ -348,7 +405,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       if (mounted) setState(_load);
                     }
                   },
-                  icon: const Icon(Icons.lock_outline),
+                  icon: const AppIcon(AppIcons.lock),
                   label: Text('Pay ${formatPaise(b.totalPaise)}'),
                 ),
                 const SizedBox(height: 8),
@@ -358,20 +415,57 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: FilledButton.tonalIcon(
                     onPressed: () => _review(b),
-                    icon: const Icon(Icons.rate_review_outlined),
+                    icon: const AppIcon(AppIcons.writeReview),
                     label: const Text('Rate this venue'),
                   ),
                 ),
               if (b.isCancellable && (b.cancellation?['allowed'] ?? true) == true)
                 OutlinedButton.icon(
                   onPressed: () => _cancel(b),
-                  icon: const Icon(Icons.close),
+                  icon: const AppIcon(AppIcons.close),
                   label: const Text('Cancel booking'),
                 ),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "Today", "Tomorrow", "Yesterday", or "Sat, 4 Oct" for a booking start time.
+String _relativeDay(String iso) {
+  final d = DateUtils.dateOnly(DateTime.parse(iso).toLocal());
+  final today = DateUtils.dateOnly(DateTime.now());
+  return switch (d.difference(today).inDays) {
+    0 => 'Today',
+    1 => 'Tomorrow',
+    -1 => 'Yesterday',
+    _ => formatDate(iso),
+  };
+}
+
+class _Line extends StatelessWidget {
+  const _Line({required this.icon, required this.text});
+  final AppIconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Row(
+      children: [
+        AppIcon(icon, size: 16, color: color),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: color),
+          ),
+        ),
+      ],
     );
   }
 }

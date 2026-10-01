@@ -8,6 +8,7 @@ import 'explore_screen.dart';
 import 'manage/my_venues_screen.dart';
 import 'onboarding_screen.dart';
 import 'profile_screen.dart';
+import '../widgets/app_icons.dart';
 
 class HomeShell extends StatefulWidget {
   const HomeShell({super.key});
@@ -42,7 +43,7 @@ class _HomeShellState extends State<HomeShell> {
             body: store.error == null
                 ? const Center(child: CircularProgressIndicator())
                 : MessageView(
-                    icon: Icons.cloud_off,
+                    icon: AppIcons.offline,
                     title: 'Couldn\'t load your profile',
                     message: '${store.error}',
                     action: FilledButton.tonal(onPressed: store.load, child: const Text('Retry')),
@@ -54,16 +55,16 @@ class _HomeShellState extends State<HomeShell> {
         final pages = <(NavigationDestination, Widget)>[
           (
             const NavigationDestination(
-              icon: Icon(Icons.explore_outlined),
-              selectedIcon: Icon(Icons.explore),
+              icon: AppIcon(AppIcons.explore),
+              selectedIcon: AppIcon(AppIcons.explore),
               label: 'Explore',
             ),
             const ExploreScreen(),
           ),
           (
             const NavigationDestination(
-              icon: Icon(Icons.event_note_outlined),
-              selectedIcon: Icon(Icons.event_note),
+              icon: AppIcon(AppIcons.bookings),
+              selectedIcon: AppIcon(AppIcons.bookings),
               label: 'Bookings',
             ),
             const BookingsScreen(),
@@ -71,8 +72,8 @@ class _HomeShellState extends State<HomeShell> {
           if (profile.canOwnVenues)
             (
               const NavigationDestination(
-                icon: Icon(Icons.store_outlined),
-                selectedIcon: Icon(Icons.store),
+                icon: AppIcon(AppIcons.manage),
+                selectedIcon: AppIcon(AppIcons.manage),
                 label: 'Manage',
               ),
               const MyVenuesScreen(),
@@ -80,16 +81,16 @@ class _HomeShellState extends State<HomeShell> {
           if (profile.isAdmin)
             (
               const NavigationDestination(
-                icon: Icon(Icons.admin_panel_settings_outlined),
-                selectedIcon: Icon(Icons.admin_panel_settings),
+                icon: AppIcon(AppIcons.admin),
+                selectedIcon: AppIcon(AppIcons.admin),
                 label: 'Admin',
               ),
               const AdminScreen(),
             ),
           (
             const NavigationDestination(
-              icon: Icon(Icons.person_outline),
-              selectedIcon: Icon(Icons.person),
+              icon: AppIcon(AppIcons.user),
+              selectedIcon: AppIcon(AppIcons.profile),
               label: 'Profile',
             ),
             const ProfileScreen(),

@@ -4,6 +4,7 @@ import '../app_scope.dart';
 import '../core/format.dart';
 import '../core/payment_flow.dart';
 import '../data/models.dart';
+import '../widgets/app_icons.dart';
 
 /// Pick duration + payment method, show a live quote, then create the booking.
 class BookingSheet extends StatefulWidget {
@@ -109,9 +110,13 @@ class _BookingSheetState extends State<BookingSheet> {
               width: double.infinity,
               child: SegmentedButton<String>(
                 segments: [
-                  const ButtonSegment(value: 'online', label: Text('Pay online'), icon: Icon(Icons.credit_card)),
+                  const ButtonSegment(value: 'online', label: Text('Pay online'), icon: AppIcon(AppIcons.card)),
                   if (widget.slot.payAtVenue)
-                    const ButtonSegment(value: 'pay_at_venue', label: Text('At venue'), icon: Icon(Icons.storefront)),
+                    const ButtonSegment(
+                      value: 'pay_at_venue',
+                      label: Text('At venue'),
+                      icon: AppIcon(AppIcons.storefront),
+                    ),
                 ],
                 selected: {_method},
                 onSelectionChanged: (s) {

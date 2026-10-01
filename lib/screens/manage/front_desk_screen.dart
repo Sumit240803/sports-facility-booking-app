@@ -8,6 +8,7 @@ import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import 'qr_scan_screen.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/app_icons.dart';
 
 /// A venue's bookings for one day, with walk-ins and check-in.
 class FrontDeskScreen extends StatefulWidget {
@@ -92,13 +93,13 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
       appBar: AppBar(
         title: const Text('Front desk'),
         actions: [
-          IconButton(tooltip: 'Type reference', onPressed: _lookup, icon: const Icon(Icons.keyboard_outlined)),
-          IconButton(tooltip: 'Scan QR', onPressed: _scan, icon: const Icon(Icons.qr_code_scanner)),
+          IconButton(tooltip: 'Type reference', onPressed: _lookup, icon: const AppIcon(AppIcons.keyboard)),
+          IconButton(tooltip: 'Scan QR', onPressed: _scan, icon: const AppIcon(AppIcons.scan)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _walkIn,
-        icon: const Icon(Icons.person_add_alt),
+        icon: const AppIcon(AppIcons.userAdd),
         label: const Text('Walk-in'),
       ),
       body: Column(
@@ -107,7 +108,7 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
-                IconButton(onPressed: () => _shift(-1), icon: const Icon(Icons.chevron_left)),
+                IconButton(onPressed: () => _shift(-1), icon: const AppIcon(AppIcons.chevronLeft)),
                 Expanded(
                   child: TextButton(
                     onPressed: () async {
@@ -132,7 +133,7 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
                     ),
                   ),
                 ),
-                IconButton(onPressed: () => _shift(1), icon: const Icon(Icons.chevron_right)),
+                IconButton(onPressed: () => _shift(1), icon: const AppIcon(AppIcons.chevronRight)),
               ],
             ),
           ),
@@ -150,7 +151,7 @@ class _FrontDeskScreenState extends State<FrontDeskScreen> {
                 empty: ListView(
                   children: const [
                     SizedBox(height: 60),
-                    MessageView(icon: Icons.event_available, title: 'No bookings this day'),
+                    MessageView(icon: AppIcons.calendarCheck, title: 'No bookings this day'),
                   ],
                 ),
                 builder: (context, all) {
@@ -318,19 +319,19 @@ class _BookingSheetState extends State<_BookingSheet> {
               const SizedBox(height: 8),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.person_outline),
+                leading: const AppIcon(AppIcons.user),
                 title: Text(vb.customerName ?? 'Player'),
                 subtitle: Text(vb.customerPhone ?? ''),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.schedule),
+                leading: const AppIcon(AppIcons.clock),
                 title: Text('${b.courtName ?? ''} · ${formatDate(b.startsAt)}'),
                 subtitle: Text('${formatTime(b.startsAt)} – ${formatTime(b.endsAt)} (${b.durationMinutes} min)'),
               ),
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.payments_outlined),
+                leading: const AppIcon(AppIcons.cash),
                 title: Text('${formatPaise(b.totalPaise)} · ${titleCase(b.paymentMethod)}'),
                 subtitle: Text(
                   '${titleCase(b.paymentStatus)}'
@@ -338,19 +339,23 @@ class _BookingSheetState extends State<_BookingSheet> {
                 ),
               ),
               if (vb.notes?.isNotEmpty ?? false)
-                ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.notes), title: Text(vb.notes!)),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const AppIcon(AppIcons.note),
+                  title: Text(vb.notes!),
+                ),
               const SizedBox(height: 8),
               if (b.status == 'confirmed')
                 FilledButton.icon(
                   onPressed: () => _checkIn(vb),
-                  icon: const Icon(Icons.login),
+                  icon: const AppIcon(AppIcons.login),
                   label: const Text('Check in'),
                 ),
               if (active && b.paymentStatus == 'due') ...[
                 const SizedBox(height: 8),
                 FilledButton.tonalIcon(
                   onPressed: () => _collect(vb),
-                  icon: const Icon(Icons.currency_rupee),
+                  icon: const AppIcon(AppIcons.rupee),
                   label: const Text('Record payment'),
                 ),
               ],
@@ -358,7 +363,7 @@ class _BookingSheetState extends State<_BookingSheet> {
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => _do(() => api.markNoShow(widget.venue.id, b.id), 'Marked as no-show'),
-                  icon: const Icon(Icons.person_off_outlined),
+                  icon: const AppIcon(AppIcons.userBlock),
                   label: const Text('Mark no-show'),
                 ),
               ],
@@ -366,7 +371,7 @@ class _BookingSheetState extends State<_BookingSheet> {
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: () => _do(() => api.undoNoShow(widget.venue.id, b.id), 'No-show undone'),
-                  icon: const Icon(Icons.undo),
+                  icon: const AppIcon(AppIcons.refund),
                   label: const Text('Undo no-show'),
                 ),
               ],
@@ -374,7 +379,7 @@ class _BookingSheetState extends State<_BookingSheet> {
                 const SizedBox(height: 8),
                 TextButton.icon(
                   onPressed: () => _cancel(vb),
-                  icon: const Icon(Icons.close),
+                  icon: const AppIcon(AppIcons.close),
                   label: const Text('Cancel booking (full refund)'),
                 ),
               ],
@@ -384,7 +389,7 @@ class _BookingSheetState extends State<_BookingSheet> {
                   ListTile(
                     dense: true,
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.circle, size: 10),
+                    leading: const AppIcon(AppIcons.dot, size: 10),
                     title: Text(titleCase('${e['to_status']}')),
                     subtitle: Text(
                       [
@@ -474,7 +479,7 @@ class _WalkInScreenState extends State<WalkInScreen> {
         onRetry: () => setState(_load),
         builder: (context, a) {
           if (a.courts.isEmpty) {
-            return const MessageView(icon: Icons.event_busy, title: 'No courts open on this day');
+            return const MessageView(icon: AppIcons.calendarOff, title: 'No courts open on this day');
           }
           final court = a.courts.firstWhere((c) => c.id == _courtId, orElse: () => a.courts.first);
           final step = court.baseSlotMinutes;
@@ -487,7 +492,7 @@ class _WalkInScreenState extends State<WalkInScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               OutlinedButton.icon(
-                icon: const Icon(Icons.calendar_today),
+                icon: const AppIcon(AppIcons.calendar),
                 label: Text(DateFormat('EEE, d MMM').format(_date)),
                 onPressed: () async {
                   final d = await showDatePicker(

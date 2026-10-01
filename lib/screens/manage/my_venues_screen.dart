@@ -8,6 +8,7 @@ import '../explore_screen.dart';
 import 'venue_form_screen.dart';
 import 'venue_manage_screen.dart';
 import '../../widgets/skeleton.dart';
+import '../../widgets/app_icons.dart';
 
 /// Venues the user owns or works at. Owners can create new ones.
 class MyVenuesScreen extends StatefulWidget {
@@ -51,7 +52,7 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
       floatingActionButton: canCreate
           ? FloatingActionButton.extended(
               onPressed: _create,
-              icon: const Icon(Icons.add),
+              icon: const AppIcon(AppIcons.add),
               label: const Text('New venue'),
             )
           : null,
@@ -69,7 +70,7 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
             children: [
               const SizedBox(height: 80),
               MessageView(
-                icon: Icons.store_outlined,
+                icon: AppIcons.manage,
                 title: canCreate ? 'No venues yet' : 'You aren\'t staff at any venue',
                 message: canCreate
                     ? 'Create your first venue, add courts, hours and prices, then submit it for review.'
@@ -106,7 +107,7 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
                       ),
                     ],
                   ),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: const AppIcon(AppIcons.chevronRight),
                 ),
               );
             },

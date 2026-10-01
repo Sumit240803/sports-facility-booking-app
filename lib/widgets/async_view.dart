@@ -1,3 +1,5 @@
+import './app_icons.dart';
+
 import 'package:flutter/material.dart';
 
 /// FutureBuilder with standard loading, error (with retry) and empty states.
@@ -31,7 +33,7 @@ class AsyncView<T> extends StatelessWidget {
         }
         if (snap.hasError) {
           return MessageView(
-            icon: Icons.cloud_off,
+            icon: AppIcons.offline,
             title: 'Something went wrong',
             message: '${snap.error}',
             action: FilledButton.tonal(onPressed: onRetry, child: const Text('Retry')),
@@ -48,7 +50,7 @@ class AsyncView<T> extends StatelessWidget {
 class MessageView extends StatelessWidget {
   const MessageView({super.key, required this.icon, required this.title, this.message, this.action});
 
-  final IconData icon;
+  final AppIconData icon;
   final String title;
   final String? message;
   final Widget? action;
@@ -62,9 +64,20 @@ class MessageView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 56, color: scheme.outline),
-            const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.titleMedium, textAlign: TextAlign.center),
+            // Icon on a soft tinted disc reads as an illustration rather than a stray glyph.
+            Container(
+              width: 96,
+              height: 96,
+              decoration: BoxDecoration(color: scheme.primaryContainer.withValues(alpha: 0.6), shape: BoxShape.circle),
+              alignment: Alignment.center,
+              child: AppIcon(icon, size: 44, color: scheme.primary),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
             if (message != null) ...[
               const SizedBox(height: 8),
               Text(
@@ -73,7 +86,7 @@ class MessageView extends StatelessWidget {
                 style: TextStyle(color: scheme.onSurfaceVariant),
               ),
             ],
-            if (action != null) ...[const SizedBox(height: 16), SizedBox(width: 160, child: action)],
+            if (action != null) ...[const SizedBox(height: 20), SizedBox(width: 180, child: action)],
           ],
         ),
       ),

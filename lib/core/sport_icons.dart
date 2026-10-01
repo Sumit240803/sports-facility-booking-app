@@ -1,14 +1,14 @@
-import 'package:flutter/material.dart';
+import '../widgets/app_icons.dart';
 
 /// Icon for a sport id from the catalog; falls back to a generic one for new sports.
-IconData sportIcon(String? sportId) => switch (sportId) {
-  'football' => Icons.sports_soccer,
-  'cricket' => Icons.sports_cricket,
-  'badminton' || 'squash' => Icons.sports_tennis,
-  'tennis' || 'pickleball' => Icons.sports_tennis,
-  'table-tennis' => Icons.sports_handball,
-  'basketball' => Icons.sports_basketball,
-  'volleyball' => Icons.sports_volleyball,
-  'swimming' => Icons.pool,
-  _ => Icons.sports,
+AppIconData sportIcon(String? sportId) => switch (sportId) {
+  'football' => AppIcons.football,
+  'cricket' => AppIcons.cricket,
+  'badminton' || 'squash' => AppIcons.racket,
+  'tennis' || 'pickleball' => AppIcons.racket,
+  'table-tennis' => AppIcons.tableTennis,
+  'basketball' => AppIcons.basketball,
+  'volleyball' => AppIcons.volleyball,
+  'swimming' => AppIcons.swimming,
+  _ => AppIcons.venue,
 };

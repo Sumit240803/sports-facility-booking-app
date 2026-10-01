@@ -11,6 +11,11 @@ import '../widgets/common.dart';
 import 'booking_sheet.dart';
 import 'explore_screen.dart';
 import 'reviews.dart';
+import '../widgets/app_icons.dart';
+
+import 'package:url_launcher/url_launcher.dart';
+
+import '../core/sport_icons.dart';
 
 class VenueDetailScreen extends StatefulWidget {
   const VenueDetailScreen({super.key, required this.idOrSlug, required this.title});
@@ -69,7 +74,7 @@ class _VenueDetailScreenState extends State<VenueDetailScreen> {
                 IconButton(
                   tooltip: _favourite ? 'Remove from favourites' : 'Save',
                   onPressed: () => _toggleFavourite(v),
-                  icon: Icon(_favourite ? Icons.favorite : Icons.favorite_border),
+                  icon: AppIcon(_favourite ? AppIcons.favourite : AppIcons.favourite),
                 ),
               ],
               flexibleSpace: FlexibleSpaceBar(background: _PhotoCarousel(photos: v.photos)),
@@ -91,37 +96,142 @@ class _Info extends StatelessWidget {
   const _Info({required this.venue});
   final PublicVenue venue;
 
+  static AppIconData _amenityIcon(String id) => switch (id) {
+    'parking' => AppIcons.parking,
+    'washroom' || 'shower' => AppIcons.shower,
+    'changing-room' || 'locker' => AppIcons.locker,
+    'drinking-water' => AppIcons.water,
+    'floodlights' => AppIcons.floodlight,
+    'equipment-rental' => AppIcons.racket,
+    'first-aid' => AppIcons.firstAid,
+    'seating' => AppIcons.seat,
+    'cafeteria' => AppIcons.cafe,
+    'wifi' => AppIcons.wifi,
+    _ => AppIcons.check,
+  };
+
+  Future<void> _call(BuildContext context) async {
+    final ok = await launchUrl(Uri(scheme: 'tel', path: venue.phone));
+    if (!ok && context.mounted) showMessage(context, 'Couldn\'t open the dialer');
+  }
+
+  Future<void> _directions(BuildContext context) async {
+    final q = venue.lat != null && venue.lng != null ? '${venue.lat},${venue.lng}' : '${venue.name}, ${venue.address}';
+    final ok = await launchUrl(
+      Uri.https('www.google.com', '/maps/dir/', {'api': '1', 'destination': q}),
+      mode: LaunchMode.externalApplication,
+    );
+    if (!ok && context.mounted) showMessage(context, 'Couldn\'t open maps');
+  }
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final text = Theme.of(context).textTheme;
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.place_outlined, size: 18, color: scheme.onSurfaceVariant),
+              AppIcon(AppIcons.location, size: 18, color: scheme.primary),
               const SizedBox(width: 6),
               Expanded(child: Text(venue.address, style: text.bodyMedium)),
-              if (venue.ratingAvg != null) RatingPill(rating: venue.ratingAvg!, count: venue.ratingCount),
+              if (venue.ratingAvg != null) ...[
+                const SizedBox(width: 8),
+                RatingPill(rating: venue.ratingAvg!, count: venue.ratingCount),
+              ],
             ],
           ),
-          if (venue.description?.isNotEmpty ?? false) ...[
-            const SizedBox(height: 12),
-            Text(venue.description!, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant)),
-          ],
-          if (venue.amenities.isNotEmpty) ...[
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _directions(context),
+                  icon: const AppIcon(AppIcons.nearMe, size: 18),
+                  label: const Text('Directions'),
+                  style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+                ),
+              ),
+              if (venue.phone != null) ...[
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _call(context),
+                    icon: const AppIcon(AppIcons.phone, size: 18),
+                    label: const Text('Call'),
+                    style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(44)),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          if (venue.sports.isNotEmpty) ...[
             const SizedBox(height: 16),
-            Text('Amenities', style: text.titleSmall),
-            const SizedBox(height: 8),
             Wrap(
               spacing: 8,
               runSpacing: 8,
               children: [
-                for (final a in venue.amenities) Chip(label: Text(titleCase(a)), visualDensity: VisualDensity.compact),
+                for (final s in venue.sports)
+                  Chip(
+                    avatar: AppIcon(sportIcon(s), size: 18, color: scheme.primary),
+                    label: Text(titleCase(s)),
+                    visualDensity: VisualDensity.compact,
+                  ),
               ],
+            ),
+          ],
+          if (venue.description?.isNotEmpty ?? false) ...[
+            const SizedBox(height: 14),
+            Text(venue.description!, style: text.bodyMedium?.copyWith(color: scheme.onSurfaceVariant, height: 1.4)),
+          ],
+          if (venue.amenities.isNotEmpty) ...[
+            const SectionTitle('Amenities'),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final a in venue.amenities)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: scheme.surfaceContainerHigh,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AppIcon(_amenityIcon(a), size: 18, color: scheme.primary),
+                        const SizedBox(width: 6),
+                        Text(titleCase(a), style: text.labelLarge),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          if (venue.rules?.isNotEmpty ?? false) ...[
+            const SectionTitle('House rules'),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: scheme.tertiaryContainer.withValues(alpha: 0.5),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  AppIcon(AppIcons.note, size: 20, color: scheme.onTertiaryContainer),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(venue.rules!, style: TextStyle(color: scheme.onTertiaryContainer)),
+                  ),
+                ],
+              ),
             ),
           ],
         ],
@@ -215,11 +325,11 @@ class _SlotPickerState extends State<_SlotPicker> {
               );
             }
             if (snap.hasError) {
-              return MessageView(icon: Icons.event_busy, title: 'Couldn\'t load slots', message: '${snap.error}');
+              return MessageView(icon: AppIcons.calendarOff, title: 'Couldn\'t load slots', message: '${snap.error}');
             }
             final a = snap.data!;
             if (a.courts.isEmpty) {
-              return const MessageView(icon: Icons.event_busy, title: 'No courts open on this day');
+              return const MessageView(icon: AppIcons.calendarOff, title: 'No courts open on this day');
             }
             final court = a.courts.firstWhere((c) => c.id == _courtId, orElse: () => a.courts.first);
 
@@ -236,7 +346,7 @@ class _SlotPickerState extends State<_SlotPicker> {
                         Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: ChoiceChip(
-                            avatar: const Icon(Icons.sports, size: 18),
+                            avatar: const AppIcon(AppIcons.venue, size: 18),
                             label: Text('${c.name} · ${titleCase(c.sportId)}'),
                             selected: c.id == court.id,
                             onSelected: (_) => setState(() => _courtId = c.id),
@@ -250,7 +360,7 @@ class _SlotPickerState extends State<_SlotPicker> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: court.slots.isEmpty
-                      ? const MessageView(icon: Icons.event_busy, title: 'No slots on this day')
+                      ? const MessageView(icon: AppIcons.calendarOff, title: 'No slots on this day')
                       : GridView.count(
                           crossAxisCount: 3,
                           shrinkWrap: true,
@@ -342,7 +452,7 @@ class _SlotTile extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             if (slot.status == 'not_yet_open')
-              Icon(Icons.notifications_active_outlined, size: 14, color: scheme.outline)
+              AppIcon(AppIcons.alarm, size: 14, color: scheme.outline)
             else
               Text(
                 available ? formatPaise(slot.pricePaise) : titleCase(slot.status),

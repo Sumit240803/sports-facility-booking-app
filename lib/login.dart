@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import 'app_scope.dart';
 import 'core/api_client.dart';
+import './widgets/app_icons.dart';
 
 /// Native Google Sign-In.
 ///
@@ -118,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: BoxDecoration(color: scheme.errorContainer, borderRadius: BorderRadius.circular(12)),
                     child: Row(
                       children: [
-                        Icon(Icons.error_outline, color: scheme.onErrorContainer),
+                        AppIcon(AppIcons.error, color: scheme.onErrorContainer),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(_error!, style: TextStyle(color: scheme.onErrorContainer)),
@@ -130,7 +131,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   onPressed: _busy ? null : _signInWithGoogle,
                   icon: _busy
                       ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.login),
+                      : const AppIcon(AppIcons.google),
                   label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
                 ),
                 const SizedBox(height: 12),

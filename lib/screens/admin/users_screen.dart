@@ -10,6 +10,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -61,7 +62,7 @@ class _UsersScreenState extends State<UsersScreen> {
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
             child: SearchBar(
               hintText: 'Email, name or phone',
-              leading: const Icon(Icons.search),
+              leading: const AppIcon(AppIcons.search),
               elevation: const WidgetStatePropertyAll(0),
               onChanged: (v) {
                 _q = v;
@@ -104,7 +105,7 @@ class _UsersScreenState extends State<UsersScreen> {
               future: _users,
               onRetry: _reload,
               isEmpty: (u) => u.isEmpty,
-              empty: const MessageView(icon: Icons.person_search, title: 'No users found'),
+              empty: const MessageView(icon: AppIcons.userSearch, title: 'No users found'),
               builder: (context, users) => ListView.separated(
                 padding: const EdgeInsets.only(bottom: 24),
                 itemCount: users.length,
@@ -192,13 +193,13 @@ class _UserSheet extends StatelessWidget {
             if (user.status == 'suspended')
               FilledButton.icon(
                 onPressed: () => _update(context, status: 'active'),
-                icon: const Icon(Icons.lock_open),
+                icon: const AppIcon(AppIcons.unlock),
                 label: const Text('Reactivate'),
               )
             else
               OutlinedButton.icon(
                 onPressed: () => _update(context, status: 'suspended'),
-                icon: const Icon(Icons.block),
+                icon: const AppIcon(AppIcons.block),
                 label: const Text('Suspend'),
               ),
           ],

@@ -6,6 +6,7 @@ import '../../core/format.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 class RefundsScreen extends StatefulWidget {
   const RefundsScreen({super.key, this.initialStatus});
@@ -73,7 +74,7 @@ class _RefundsScreenState extends State<RefundsScreen> {
                 empty: ListView(
                   children: const [
                     SizedBox(height: 60),
-                    MessageView(icon: Icons.undo, title: 'No refunds'),
+                    MessageView(icon: AppIcons.refund, title: 'No refunds'),
                   ],
                 ),
                 builder: (context, list) => ListView.separated(

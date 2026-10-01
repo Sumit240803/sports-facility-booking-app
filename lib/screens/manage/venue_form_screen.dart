@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app_scope.dart';
 import '../../data/models.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 /// Create a venue (pops its new id) or edit an existing one (pops true).
 class VenueFormScreen extends StatefulWidget {
@@ -314,7 +315,7 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
               'Cancellation refunds',
               trailing: TextButton.icon(
                 onPressed: _addPolicyRow,
-                icon: const Icon(Icons.add),
+                icon: const AppIcon(AppIcons.add),
                 label: const Text('Add'),
               ),
             ),
@@ -324,11 +325,11 @@ class _VenueFormScreenState extends State<VenueFormScreen> {
               for (final p in _policy)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.schedule),
+                  leading: const AppIcon(AppIcons.clock),
                   title: Text('${p.hours}h or more before start'),
                   subtitle: Text('${p.percent}% refund'),
                   trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
+                    icon: const AppIcon(AppIcons.delete),
                     onPressed: () => setState(() => _policy = [..._policy]..remove(p)),
                   ),
                 ),
@@ -377,7 +378,7 @@ class _NumberRow extends StatelessWidget {
           Expanded(child: Text(label)),
           IconButton.filledTonal(
             onPressed: value - step >= min ? () => onChanged(value - step) : null,
-            icon: const Icon(Icons.remove),
+            icon: const AppIcon(AppIcons.remove),
           ),
           SizedBox(
             width: 96,
@@ -389,7 +390,7 @@ class _NumberRow extends StatelessWidget {
           ),
           IconButton.filledTonal(
             onPressed: value + step <= max ? () => onChanged(value + step) : null,
-            icon: const Icon(Icons.add),
+            icon: const AppIcon(AppIcons.add),
           ),
         ],
       ),

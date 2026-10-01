@@ -6,6 +6,7 @@ import '../../app_scope.dart';
 import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
+import '../../widgets/app_icons.dart';
 
 class PhotosScreen extends StatefulWidget {
   const PhotosScreen({super.key, required this.venue});
@@ -56,12 +57,12 @@ class _PhotosScreenState extends State<PhotosScreen> {
           children: [
             if (!p.isCover)
               ListTile(
-                leading: const Icon(Icons.star_outline),
+                leading: const AppIcon(AppIcons.star),
                 title: const Text('Set as cover'),
                 onTap: () => Navigator.pop(context, 'cover'),
               ),
             ListTile(
-              leading: const Icon(Icons.delete_outline),
+              leading: const AppIcon(AppIcons.delete),
               title: const Text('Delete'),
               onTap: () => Navigator.pop(context, 'delete'),
             ),
@@ -99,7 +100,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
                         );
                         if (saved == true && mounted) setState(_load);
                       },
-                      icon: const Icon(Icons.swap_vert),
+                      icon: const AppIcon(AppIcons.reorder),
                       label: const Text('Reorder'),
                     )
                   : const SizedBox.shrink(),
@@ -111,7 +112,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
               onPressed: _uploading ? null : _upload,
               icon: _uploading
                   ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Icon(Icons.add_photo_alternate_outlined),
+                  : const AppIcon(AppIcons.addPhoto),
               label: Text(_uploading ? 'Uploading…' : 'Add photos'),
             )
           : null,
@@ -120,7 +121,7 @@ class _PhotosScreenState extends State<PhotosScreen> {
         onRetry: () => setState(_load),
         isEmpty: (p) => p.isEmpty,
         empty: const MessageView(
-          icon: Icons.photo_library_outlined,
+          icon: AppIcons.photos,
           title: 'No photos yet',
           message: 'Add at least one photo (min 400px). The first one becomes the cover.',
         ),
@@ -215,7 +216,7 @@ class _ReorderPhotosScreenState extends State<_ReorderPhotosScreen> {
               ),
               title: Text('Photo ${i + 1}'),
               subtitle: p.isCover ? const Text('Cover') : null,
-              trailing: const Icon(Icons.drag_handle),
+              trailing: const AppIcon(AppIcons.drag),
             ),
           );
         },

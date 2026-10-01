@@ -14,6 +14,7 @@ import 'manage_reviews_screen.dart';
 import 'photos_screen.dart';
 import 'staff_screen.dart';
 import 'venue_form_screen.dart';
+import '../../widgets/app_icons.dart';
 
 typedef _Setup = ({ManagedVenue venue, int courts, int photos, int hours});
 
@@ -159,8 +160,8 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
                           for (final c in checklist)
                             Row(
                               children: [
-                                Icon(
-                                  c.$2 ? Icons.check_circle : Icons.radio_button_unchecked,
+                                AppIcon(
+                                  c.$2 ? AppIcons.check : AppIcons.dot,
                                   size: 20,
                                   color: c.$2 ? scheme.primary : scheme.outline,
                                 ),
@@ -182,33 +183,33 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
 
                 const SectionTitle('Daily operations'),
                 _tile(
-                  Icons.point_of_sale,
+                  AppIcons.counter,
                   'Front desk',
                   'Today\'s bookings, walk-ins, check-in',
                   () => _open(FrontDeskScreen(venue: v)),
                 ),
                 _tile(
-                  Icons.block,
+                  AppIcons.block,
                   'Blocks & closures',
                   'Maintenance, private events, holidays',
                   () => _open(BlocksScreen(venue: v)),
                 ),
                 if (v.isOwner) ...[
                   _tile(
-                    Icons.insights,
+                    AppIcons.insights,
                     'Dashboard',
                     'Bookings, earnings, occupancy',
                     () => _open(DashboardScreen(venue: v)),
                   ),
                   _tile(
-                    Icons.account_balance_wallet_outlined,
+                    AppIcons.wallet,
                     'Earnings & payouts',
                     'Balance, ledger, bank/UPI details',
                     () => _open(EarningsScreen(venue: v)),
                   ),
                 ],
                 _tile(
-                  Icons.reviews_outlined,
+                  AppIcons.review,
                   'Reviews',
                   'Read and reply to player reviews',
                   () => _open(ManageReviewsScreen(venue: v)),
@@ -217,38 +218,27 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
                 const SectionTitle('Setup'),
                 if (v.canEdit)
                   _tile(
-                    Icons.edit_outlined,
+                    AppIcons.edit,
                     'Venue details',
                     'Name, address, booking rules',
                     () => _open(VenueFormScreen(venue: v)),
                   ),
+                _tile(AppIcons.racket, 'Courts & pricing', '${d.courts} active', () => _open(CourtsScreen(venue: v))),
                 _tile(
-                  Icons.sports_tennis,
-                  'Courts & pricing',
-                  '${d.courts} active',
-                  () => _open(CourtsScreen(venue: v)),
-                ),
-                _tile(
-                  Icons.schedule,
+                  AppIcons.clock,
                   'Opening hours',
                   d.hours == 0 ? 'Not set' : '${d.hours} time ranges',
                   () => _open(HoursScreen(venue: v)),
                 ),
-                _tile(Icons.photo_library_outlined, 'Photos', '${d.photos} of 15', () => _open(PhotosScreen(venue: v))),
+                _tile(AppIcons.photos, 'Photos', '${d.photos} of 15', () => _open(PhotosScreen(venue: v))),
                 if (v.isOwner || v.access == 'manager')
-                  _tile(
-                    Icons.group_outlined,
-                    'Staff',
-                    'Managers and front-desk staff',
-                    () => _open(StaffScreen(venue: v)),
-                  ),
+                  _tile(AppIcons.users, 'Staff', 'Managers and front-desk staff', () => _open(StaffScreen(venue: v))),
 
                 if (v.isOwner) ...[
                   const SectionTitle('Danger zone'),
-                  if (v.isListed)
-                    _tile(Icons.visibility_off_outlined, 'Unpublish', 'Hide from players', () => _unpublish(v)),
+                  if (v.isListed) _tile(AppIcons.hide, 'Unpublish', 'Hide from players', () => _unpublish(v)),
                   _tile(
-                    Icons.delete_outline,
+                    AppIcons.delete,
                     'Delete venue',
                     'Only when there are no upcoming bookings',
                     () => _delete(v),
@@ -263,11 +253,11 @@ class _VenueManageScreenState extends State<VenueManageScreen> {
     );
   }
 
-  Widget _tile(IconData icon, String title, String subtitle, VoidCallback onTap, {Color? color}) => ListTile(
-    leading: Icon(icon, color: color),
+  Widget _tile(AppIconData icon, String title, String subtitle, VoidCallback onTap, {Color? color}) => ListTile(
+    leading: IconBadge(icon, color: color),
     title: Text(title, style: TextStyle(color: color)),
     subtitle: Text(subtitle),
-    trailing: const Icon(Icons.chevron_right),
+    trailing: const AppIcon(AppIcons.chevronRight),
     onTap: onTap,
   );
 }
