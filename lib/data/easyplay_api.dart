@@ -7,7 +7,14 @@ class EasyPlayApi {
   final ApiClient _c;
 
   // Auth / profile
-  String get googleSignInUrl => '$apiBaseUrl/auth/oauth/google?redirect=true';
+  /// OAuth web client id that native Google Sign-In must request ID tokens for.
+  Future<String> googleWebClientId() async => (await _c.get('/auth/google/config'))['web_client_id'] as String;
+
+  /// Exchanges a Google ID token for an EasyPlay session. Returns (access, refresh).
+  Future<(String, String?)> signInWithGoogleIdToken(String idToken, String rawNonce) async {
+    final res = await _c.post('/auth/google/token', {'id_token': idToken, 'nonce': rawNonce});
+    return (res['access_token'] as String, res['refresh_token'] as String?);
+  }
 
   Future<Profile> me() async => Profile((await _c.get('/auth/me'))['user']);
 

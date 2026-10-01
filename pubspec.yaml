@@ -8,12 +8,13 @@ environment:
 
 dependencies:
   cached_network_image: ^4.0.2
+  crypto: ^3.0.7
   firebase_core: ^4.15.0
   firebase_messaging: ^16.7.0
   flutter:
     sdk: flutter
-  flutter_web_auth_2: ^5.1.0
   geolocator: ^14.1.1
+  google_sign_in: ^7.2.0
   http: ^1.6.0
   image_picker: ^1.2.3
   intl: ^0.20.3

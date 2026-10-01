@@ -1,13 +1,18 @@
+import 'dart:convert';
+import 'dart:math';
+
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'app_scope.dart';
+import 'core/api_client.dart';
 
-/// Google sign-in via the backend's OAuth flow.
+/// Native Google Sign-In.
 ///
-/// The backend redirects to `FRONTEND_URL/auth/callback#access_token=...`, so
-/// set `FRONTEND_URL=easyplay://app` in the backend `.env` for the app to
-/// receive the tokens.
+/// The OS account picker returns a Google ID token (requested for the backend's web client id,
+/// with a hashed nonce); the backend has Supabase verify it and returns our session. No browser,
+/// cookies or deep-link redirects are involved.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -17,52 +22,53 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _busy = false;
+  String? _error;
+
+  static String _randomNonce() {
+    final r = Random.secure();
+    return base64UrlEncode(List<int>.generate(32, (_) => r.nextInt(256))).replaceAll('=', '');
+  }
 
   Future<void> _signInWithGoogle() async {
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    final api = context.api;
+    final session = context.session;
     try {
-      final result = await FlutterWebAuth2.authenticate(
-        url: context.api.googleSignInUrl,
-        callbackUrlScheme: 'easyplay',
-      );
-      final params = Uri.splitQueryString(Uri.parse(result).fragment);
-      if (params['error'] != null) throw Exception(params['error']);
-      final access = params['access_token'];
-      if (access == null) throw Exception('No access token returned');
-      if (!mounted) return;
-      await context.session.save(access, params['refresh_token']);
+      final webClientId = await api.googleWebClientId();
+
+      // Google puts sha256(nonce) in the token; Supabase checks it against the raw nonce we send.
+      final rawNonce = _randomNonce();
+      final google = GoogleSignIn.instance;
+      await google.initialize(serverClientId: webClientId, nonce: sha256.convert(utf8.encode(rawNonce)).toString());
+
+      final account = await google.authenticate();
+      final idToken = account.authentication.idToken;
+      if (idToken == null) throw 'Google did not return an ID token. Please try again.';
+
+      final (access, refresh) = await api.signInWithGoogleIdToken(idToken, rawNonce);
+      await session.save(access, refresh);
+    } on GoogleSignInException catch (e) {
+      if (e.code == GoogleSignInExceptionCode.canceled) return; // user closed the picker
+      _fail(switch (e.code) {
+        GoogleSignInExceptionCode.clientConfigurationError || GoogleSignInExceptionCode.providerConfigurationError =>
+          'Google sign-in is not set up for this app build (check the Android OAuth client and SHA-1).',
+        GoogleSignInExceptionCode.uiUnavailable => 'Couldn\'t open the Google account picker.',
+        _ => 'Google sign-in failed: ${e.description ?? e.code.name}',
+      });
+    } on ApiException catch (e) {
+      _fail(e.statusCode == 503 ? 'Google sign-in is not configured on the server yet.' : e.message);
     } catch (e) {
-      _showError('Sign-in failed: $e');
+      _fail('$e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
   }
 
-  /// Dev helper: paste an access token copied from Swagger / the web app.
-  Future<void> _pasteToken() async {
-    final controller = TextEditingController();
-    final token = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Use access token'),
-        content: TextField(
-          controller: controller,
-          maxLines: 4,
-          decoration: const InputDecoration(hintText: 'Paste a bearer token'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, controller.text.trim()), child: const Text('Continue')),
-        ],
-      ),
-    );
-    if (token == null || token.isEmpty || !mounted) return;
-    await context.session.save(token, null);
-  }
-
-  void _showError(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  void _fail(String message) {
+    if (mounted) setState(() => _error = message);
   }
 
   @override
@@ -105,15 +111,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: text.titleMedium?.copyWith(color: scheme.onSurfaceVariant),
                 ),
                 const Spacer(),
+                if (_error != null)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 12),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: scheme.errorContainer, borderRadius: BorderRadius.circular(12)),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: scheme.onErrorContainer),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(_error!, style: TextStyle(color: scheme.onErrorContainer)),
+                        ),
+                      ],
+                    ),
+                  ),
                 FilledButton.icon(
                   onPressed: _busy ? null : _signInWithGoogle,
                   icon: _busy
                       ? const SizedBox.square(dimension: 20, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.login),
-                  label: const Text('Continue with Google'),
+                  label: Text(_busy ? 'Signing in…' : 'Continue with Google'),
                 ),
-                const SizedBox(height: 8),
-                TextButton(onPressed: _busy ? null : _pasteToken, child: const Text('Developer: use access token')),
+                const SizedBox(height: 12),
+                Text(
+                  'The first sign-in can take up to a minute while the server wakes up.',
+                  textAlign: TextAlign.center,
+                  style: text.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                ),
               ],
             ),
           ),

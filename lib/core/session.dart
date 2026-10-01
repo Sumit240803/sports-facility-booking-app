@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Holds the auth tokens and persists them across launches.
@@ -32,6 +33,10 @@ class Session extends ChangeNotifier {
     refreshToken = null;
     await prefs.remove(_accessKey);
     await prefs.remove(_refreshKey);
+    // Forget the Google account too, so the next sign-in shows the account picker.
+    try {
+      await GoogleSignIn.instance.signOut();
+    } catch (_) {}
     notifyListeners();
   }
 }
