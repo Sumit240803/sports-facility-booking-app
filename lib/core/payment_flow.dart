@@ -42,7 +42,7 @@ Future<bool> payForBooking(BuildContext context, String bookingId) async {
       'order_id': order.orderId,
       'amount': order.amountPaise,
       'currency': order.currency,
-      'name': 'EasyPlay',
+      'name': 'ZocoPlay',
       'description': order.description,
       'timeout': order.timeoutSeconds,
       'prefill': {

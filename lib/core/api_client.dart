@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'session.dart';
 
-/// Base URL of the EasyPlay API. Override with
+/// Base URL of the ZocoPlay API. Override with
 /// `--dart-define=API_BASE_URL=http://192.168.1.10:3000/api` on a real device.
 String get apiBaseUrl {
   const fromEnv = String.fromEnvironment('API_BASE_URL');

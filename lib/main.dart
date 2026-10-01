@@ -6,7 +6,7 @@ import 'core/profile_store.dart';
 import 'core/push_service.dart';
 import 'core/session.dart';
 import 'core/theme_controller.dart';
-import 'data/easyplay_api.dart';
+import 'data/zocoplay_api.dart';
 import 'login.dart';
 import 'screens/home_shell.dart';
 import 'theme/app_theme.dart';
@@ -31,7 +31,7 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  late final api = EasyPlayApi(ApiClient(widget.session));
+  late final api = ZocoPlayApi(ApiClient(widget.session));
   late final profile = ProfileStore(api);
   late final push = PushService(api);
 
@@ -49,7 +49,7 @@ class _MainAppState extends State<MainApp> {
         builder: (context, _) => MaterialApp(
           navigatorKey: navigatorKey,
           scaffoldMessengerKey: messengerKey,
-          title: 'EasyPlay',
+          title: 'ZocoPlay',
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(),
           darkTheme: AppTheme.dark(),

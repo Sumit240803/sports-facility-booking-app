@@ -4,7 +4,7 @@ import 'core/profile_store.dart';
 import 'core/push_service.dart';
 import 'core/session.dart';
 import 'core/theme_controller.dart';
-import 'data/easyplay_api.dart';
+import 'data/zocoplay_api.dart';
 
 /// Makes the API, session and profile available to every screen.
 class AppScope extends InheritedWidget {
@@ -19,7 +19,7 @@ class AppScope extends InheritedWidget {
   });
 
   final Session session;
-  final EasyPlayApi api;
+  final ZocoPlayApi api;
   final ProfileStore profile;
   final PushService push;
   final ThemeController theme;
@@ -31,7 +31,7 @@ class AppScope extends InheritedWidget {
 }
 
 extension AppScopeX on BuildContext {
-  EasyPlayApi get api => AppScope.of(this).api;
+  ZocoPlayApi get api => AppScope.of(this).api;
   Session get session => AppScope.of(this).session;
   ProfileStore get profileStore => AppScope.of(this).profile;
   PushService get push => AppScope.of(this).push;

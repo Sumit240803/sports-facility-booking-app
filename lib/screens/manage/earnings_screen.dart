@@ -74,7 +74,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         e.balancePaise >= 0
                             ? (e.payoutMode == 'route'
                                   ? 'Paid out automatically every day.'
-                                  : 'EasyPlay transfers this to your bank/UPI.')
+                                  : 'ZocoPlay transfers this to your bank/UPI.')
                             : 'You owe this commission on pay-at-venue bookings; it\'s deducted from future online earnings.',
                         style: TextStyle(color: scheme.onPrimaryContainer),
                       ),
@@ -226,7 +226,7 @@ class _PayoutSettingsScreenState extends State<PayoutSettingsScreen> {
                   subtitle: Text(
                     s.mode == 'route'
                         ? 'Linked account ${s.linkedAccount ?? ''}'
-                        : 'EasyPlay sends your balance to the account below.',
+                        : 'ZocoPlay sends your balance to the account below.',
                   ),
                 ),
               ),

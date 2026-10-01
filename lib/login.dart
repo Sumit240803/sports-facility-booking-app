@@ -101,7 +101,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'EasyPlay',
+                  'ZocoPlay',
                   textAlign: TextAlign.center,
                   style: text.displaySmall?.copyWith(fontWeight: FontWeight.w800),
                 ),

@@ -1,4 +1,4 @@
-package com.example.easyplay
+package com.zocoplay.app
 
 import io.flutter.embedding.android.FlutterActivity
 

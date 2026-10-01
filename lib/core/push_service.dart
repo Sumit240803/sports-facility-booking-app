@@ -5,7 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../data/easyplay_api.dart';
+import '../data/zocoplay_api.dart';
 import '../screens/bookings_screen.dart';
 import '../screens/venue_detail_screen.dart';
 
@@ -33,7 +33,7 @@ void openNotificationTarget(Map<String, dynamic> data) {
 /// Firebase Cloud Messaging: permission, device registration and message handling.
 class PushService {
   PushService(this._api);
-  final EasyPlayApi _api;
+  final ZocoPlayApi _api;
 
   static bool _firebaseReady = false;
   String? _token;

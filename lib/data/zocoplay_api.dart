@@ -1,16 +1,16 @@
 import '../core/api_client.dart';
 import 'models.dart';
 
-/// Typed wrappers over the EasyPlay REST endpoints the app uses.
-class EasyPlayApi {
-  EasyPlayApi(this._c);
+/// Typed wrappers over the ZocoPlay REST endpoints the app uses.
+class ZocoPlayApi {
+  ZocoPlayApi(this._c);
   final ApiClient _c;
 
   // Auth / profile
   /// OAuth web client id that native Google Sign-In must request ID tokens for.
   Future<String> googleWebClientId() async => (await _c.get('/auth/google/config'))['web_client_id'] as String;
 
-  /// Exchanges a Google ID token for an EasyPlay session. Returns (access, refresh).
+  /// Exchanges a Google ID token for an ZocoPlay session. Returns (access, refresh).
   Future<(String, String?)> signInWithGoogleIdToken(String idToken, String rawNonce) async {
     final res = await _c.post('/auth/google/token', {'id_token': idToken, 'nonce': rawNonce});
     return (res['access_token'] as String, res['refresh_token'] as String?);

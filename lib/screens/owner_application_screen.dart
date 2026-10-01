@@ -119,7 +119,7 @@ class _OwnerApplicationScreenState extends State<OwnerApplicationScreen> {
         padding: const EdgeInsets.all(24),
         children: [
           Text(
-            'Own a turf, court or ground? Apply to list it on EasyPlay. An admin will verify your details.',
+            'Own a turf, court or ground? Apply to list it on ZocoPlay. An admin will verify your details.',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           const SizedBox(height: 20),

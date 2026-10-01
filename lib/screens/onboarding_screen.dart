@@ -72,7 +72,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           child: ListView(
             padding: const EdgeInsets.all(24),
             children: [
-              Text('Welcome to EasyPlay', style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+              Text('Welcome to ZocoPlay', style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
               const SizedBox(height: 8),
               Text('Tell us a little about yourself to start booking.', style: text.bodyLarge),
               const SizedBox(height: 24),
