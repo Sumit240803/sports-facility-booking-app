@@ -5,7 +5,7 @@ import '../../data/models.dart';
 import '../../widgets/async_view.dart';
 import '../../widgets/common.dart';
 import '../explore_screen.dart';
-import 'venue_form_screen.dart';
+import 'venue_wizard_screen.dart';
 import 'venue_manage_screen.dart';
 import '../../widgets/skeleton.dart';
 import '../../widgets/app_icons.dart';
@@ -33,7 +33,7 @@ class _MyVenuesScreenState extends State<MyVenuesScreen> {
   void _load() => _venues = context.api.myVenues();
 
   Future<void> _create() async {
-    final id = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => const VenueFormScreen()));
+    final id = await Navigator.push<String>(context, MaterialPageRoute(builder: (_) => const VenueWizardScreen()));
     if (!mounted) return;
     setState(_load);
     if (id != null) _open(id);

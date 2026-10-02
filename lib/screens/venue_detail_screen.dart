@@ -96,20 +96,6 @@ class _Info extends StatelessWidget {
   const _Info({required this.venue});
   final PublicVenue venue;
 
-  static AppIconData _amenityIcon(String id) => switch (id) {
-    'parking' => AppIcons.parking,
-    'washroom' || 'shower' => AppIcons.shower,
-    'changing-room' || 'locker' => AppIcons.locker,
-    'drinking-water' => AppIcons.water,
-    'floodlights' => AppIcons.floodlight,
-    'equipment-rental' => AppIcons.racket,
-    'first-aid' => AppIcons.firstAid,
-    'seating' => AppIcons.seat,
-    'cafeteria' => AppIcons.cafe,
-    'wifi' => AppIcons.wifi,
-    _ => AppIcons.check,
-  };
-
   Future<void> _call(BuildContext context) async {
     final ok = await launchUrl(Uri(scheme: 'tel', path: venue.phone));
     if (!ok && context.mounted) showMessage(context, 'Couldn\'t open the dialer');
@@ -204,7 +190,7 @@ class _Info extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        AppIcon(_amenityIcon(a), size: 18, color: scheme.primary),
+                        AppIcon(amenityIcon(a), size: 18, color: scheme.primary),
                         const SizedBox(width: 6),
                         Text(titleCase(a), style: text.labelLarge),
                       ],

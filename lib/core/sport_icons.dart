@@ -12,3 +12,18 @@ AppIconData sportIcon(String? sportId) => switch (sportId) {
   'swimming' => AppIcons.swimming,
   _ => AppIcons.venue,
 };
+
+/// Icon for an amenity id from the catalog.
+AppIconData amenityIcon(String id) => switch (id) {
+  'parking' => AppIcons.parking,
+  'washroom' || 'shower' => AppIcons.shower,
+  'changing-room' || 'locker' => AppIcons.locker,
+  'drinking-water' => AppIcons.water,
+  'floodlights' => AppIcons.floodlight,
+  'equipment-rental' => AppIcons.racket,
+  'first-aid' => AppIcons.firstAid,
+  'seating' => AppIcons.seat,
+  'cafeteria' => AppIcons.cafe,
+  'wifi' => AppIcons.wifi,
+  _ => AppIcons.check,
+};
